@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#101820">
+<meta name="format-detection" content="telephone=no">
+<title>Pod Sprint — Run Mode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Brand colors */
+  --teal: #0094a0;
+  --teal-dark: #006b73;
+  --teal-light: #e0f5f6;
+  --red: #ee1c25;
+  --red-dark: #c0141c;
+  --midnight: #101820;
+  --ink: #1a2632;
+  --amber: #c97a00;
+
+  /* Surfaces */
+  --white: #ffffff;
+  --off-white: #f7f8f9;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --cloud: #e1e6eb;
+  --hairline: rgba(60, 70, 85, 0.12);
+
+  /* Text — iOS-style hierarchy */
+  --text-primary: #0d1b27;
+  --text-secondary: #3d5060;
+  --text-muted: #7a8b96;
+  --text-quaternary: #b0bcc4;
+
+  /* Radii — iOS continuous corner system */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  /* Shadows — layered for depth */
+  --sh-1: 0 1px 2px rgba(13, 27, 39, 0.04), 0 0 0 0.5px rgba(13, 27, 39, 0.04);
+  --sh-2: 0 1px 3px rgba(13, 27, 39, 0.06), 0 4px 12px rgba(13, 27, 39, 0.05);
+  --sh-3: 0 2px 8px rgba(13, 27, 39, 0.08), 0 16px 40px rgba(13, 27, 39, 0.12);
+  --sh-red: 0 2px 8px rgba(238, 28, 37, 0.18), 0 8px 24px rgba(238, 28, 37, 0.18);
+  --sh-red-active: 0 1px 4px rgba(238, 28, 37, 0.25);
+
+  /* Motion — iOS spring curves */
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+html { height: 100%; }
+body {
+  font-family: 'Geologica', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  background: var(--off-white);
+  color: var(--text-primary);
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  user-select: none;
+  font-size: 17px; /* iOS body base */
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+button { font-family: inherit; touch-action: manipulation; }
+
+/* ===== APP SHELL ===== */
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ===== TOP BAR — iOS nav bar style ===== */
+.topbar {
+  flex-shrink: 0;
+  background: var(--midnight);
+  padding: max(env(safe-area-inset-top), 0px) 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: calc(44px + env(safe-area-inset-top));
+}
+.topbar > * { padding-top: 0; padding-bottom: 0; }
+.topbar-brand {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 0.04em;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 44px;
+}
+.topbar-counter {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 0.6rem;
+}
+.topbar-toggle {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-spring);
+}
+.topbar-toggle:active {
+  background: rgba(255,255,255,0.18);
+  transform: scale(0.96);
+}
+.topbar-toggle svg { width: 14px; height: 14px; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-track {
+  flex-shrink: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.06);
+}
+.progress-fill {
+  height: 100%;
+  background: var(--teal);
+  transition: width 0.5s var(--ease-spring);
+  border-radius: 0 1px 1px 0;
+}
+
+/* ===== MAIN CARD AREA ===== */
+.card-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: 1.5rem 1.25rem 1rem;
+}
+
+/* ===== TIME BLOCK ===== */
+.time-block {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+.time-range {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--teal-dark);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.mode-tag {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.22rem 0.55rem;
+  border-radius: var(--r-pill);
+  background: var(--teal-light);
+  color: var(--teal-dark);
+  text-transform: uppercase;
+}
+.mode-tag.converge { background: #fde8e8; color: #b01018; }
+.mode-tag.lunch { background: rgba(60,70,85,0.08); color: var(--text-muted); }
+.mode-tag.amber { background: #fef3e0; color: #8a5200; }
+.duration-tag {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(60,70,85,0.06);
+  padding: 0.22rem 0.55rem;
+  border-radius: var(--r-pill);
+  letter-spacing: -0.005em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== BLOCK TITLE ===== */
+.block-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.15rem;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+/* ===== SAY THIS BOX ===== */
+.say-box {
+  background: var(--midnight);
+  border-radius: var(--r-lg);
+  padding: 1.1rem 1.15rem;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 1px 3px rgba(13, 27, 39, 0.08), 0 8px 24px rgba(13, 27, 39, 0.06);
+}
+.say-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--teal);
+  margin-bottom: 0.55rem;
+  text-transform: uppercase;
+}
+.say-text {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: #ffffff;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.say-text em {
+  font-style: normal;
+  color: #5dd9e2;
+  font-weight: 600;
+}
+
+/* ===== DO THIS LIST ===== */
+.do-section {
+  margin-bottom: 0.85rem;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 0.85rem 1.1rem 0.95rem;
+  box-shadow: var(--sh-1);
+}
+.do-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.55rem;
+  text-transform: uppercase;
+}
+.do-item {
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  padding: 0.55rem 0;
+  border-bottom: 0.5px solid var(--hairline);
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  letter-spacing: -0.01em;
+}
+.do-item:last-child { border-bottom: none; }
+.do-bullet {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  margin-top: 0.55rem;
+}
+
+/* ===== DETAILS TOGGLE (legacy, hidden) ===== */
+.details-toggle, .details-content { display: none; }
+
+/* ===== SUCCESS CHECK ===== */
+.success-check {
+  background: var(--surface);
+  border-left: 3px solid var(--teal);
+  border-radius: var(--r-md);
+  padding: 0.85rem 1rem;
+  margin-top: 0.85rem;
+  box-shadow: var(--sh-1);
+}
+.success-check-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--teal-dark);
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+}
+.success-check-text {
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/* ===== BOTTOM BAR ===== */
+.bottom-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  height: 72px;
+  background: var(--midnight);
+  padding: 8px;
+  gap: 6px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+}
+
+/* BACK & NEXT — congruent navigation buttons */
+.bar-back, .bar-next {
+  width: 64px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--r-md);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 2px;
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out), opacity 0.2s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.bar-back {
+  background: rgba(255,255,255,0.07);
+}
+.bar-back:active:not(:disabled) {
+  background: rgba(255,255,255,0.14);
+  transform: scale(0.94);
+}
+.bar-back:disabled { opacity: 0.25; }
+
+.bar-next {
+  background: var(--teal);
+}
+.bar-next:active:not(:disabled), .bar-next:active:not(.disabled) {
+  background: var(--teal-dark);
+  transform: scale(0.94);
+}
+.bar-next:disabled, .bar-next.disabled {
+  background: rgba(255,255,255,0.05);
+  cursor: default;
+}
+
+.bar-back-arrow, .bar-next-arrow {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bar-back-arrow svg { stroke: rgba(255,255,255,0.7); }
+.bar-next-arrow svg { stroke: #fff; }
+.bar-next:disabled .bar-next-arrow svg,
+.bar-next.disabled .bar-next-arrow svg { stroke: rgba(255,255,255,0.25); }
+
+.bar-back-label, .bar-next-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.bar-back-label { color: rgba(255,255,255,0.55); }
+.bar-next-label { color: rgba(255,255,255,0.92); }
+.bar-next:disabled .bar-next-label,
+.bar-next.disabled .bar-next-label { color: rgba(255,255,255,0.25); }
+
+/* TIMER — primary action, dominant center */
+.bar-timer {
+  flex: 1;
+  background: var(--red);
+  border: none;
+  margin: 0;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 0.55rem;
+  transition: transform 0.15s var(--ease-spring), background 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+  box-shadow: var(--sh-red);
+  position: relative;
+  overflow: hidden;
+}
+.bar-timer:active {
+  background: var(--red-dark);
+  transform: scale(0.985);
+  box-shadow: var(--sh-red-active);
+}
+
+/* Idle state */
+.bar-timer-idle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.bar-timer-icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bar-timer-icon svg { stroke: #fff; }
+.bar-timer-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: white;
+  letter-spacing: -0.015em;
+}
+.bar-timer-idle-time {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  padding-left: 0.55rem;
+  margin-left: 0.1rem;
+  border-left: 1px solid rgba(255,255,255,0.25);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Running state */
+.bar-timer-active {
+  display: none;
+  align-items: center;
+  gap: 0.55rem;
+}
+.bar-timer-countdown {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.bar-timer-running-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: rgba(255,255,255,0.55);
+}
+.bar-timer-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  flex-shrink: 0;
+}
+
+.bar-timer.running { background: #b01018; box-shadow: 0 2px 8px rgba(176,16,24,0.18), 0 8px 24px rgba(176,16,24,0.22); }
+.bar-timer.running .bar-timer-idle { display: none; }
+.bar-timer.running .bar-timer-active { display: flex; }
+.bar-timer.running .bar-timer-pulse { animation: pulse 1.4s var(--ease-in-out) infinite; }
+
+.bar-timer.urgent { background: #7a0a0e; }
+.bar-timer.urgent .bar-timer-countdown { color: #ffbbbb; }
+.bar-timer.urgent .bar-timer-pulse { background: #ff6b6b; animation: urgentPulse 0.55s var(--ease-in-out) infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+@keyframes urgentPulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+/* NEXT-UP TICKER — teal with scrolling cascade */
+.next-ticker {
+  flex-shrink: 0;
+  background: var(--teal);
+  overflow: hidden;
+  min-height: 34px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.next-ticker-static {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0 0 0.95rem;
+  z-index: 2;
+  background: var(--teal);
+  height: 100%;
+  position: relative;
+}
+.next-ticker-static::after {
+  content: '';
+  position: absolute;
+  right: -18px;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  background: linear-gradient(to right, var(--teal), transparent);
+  z-index: 3;
+}
+.next-ticker-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap;
+}
+.next-ticker-pipe {
+  color: rgba(255,255,255,0.3);
+  font-weight: 300;
+  font-size: 0.75rem;
+}
+.next-ticker-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.next-ticker-scroll {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 16px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 16px), transparent);
+  padding-left: 24px;
+}
+.next-ticker-tape {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: tickerScroll var(--ticker-duration, 22s) linear infinite;
+}
+.next-ticker-tape span {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.42);
+  padding: 0 0.55rem;
+  letter-spacing: -0.005em;
+}
+.next-ticker-tape .sep {
+  color: rgba(255,255,255,0.22);
+  font-size: 0.55rem;
+  padding: 0 0.15rem;
+}
+.next-ticker-tape .end-state {
+  color: rgba(255,255,255,0.7);
+  font-weight: 600;
+  font-size: 0.65rem;
+}
+.next-ticker.done { background: var(--teal-dark); }
+.next-ticker.done .next-ticker-static { background: var(--teal-dark); }
+.next-ticker.done .next-ticker-static::after { background: linear-gradient(to right, var(--teal-dark), transparent); }
+
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ===== EXPLAINER PILL — at top of each card ===== */
+.explainer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--surface);
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--r-pill);
+  padding: 0.5rem 0.85rem 0.5rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--teal-dark);
+  cursor: pointer;
+  margin-bottom: 1.15rem;
+  min-height: 34px;
+  letter-spacing: -0.01em;
+  box-shadow: var(--sh-1);
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out);
+}
+.explainer-pill:active {
+  background: var(--teal-light);
+  transform: scale(0.97);
+}
+.explainer-pill .pill-icon {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.explainer-pill .pill-icon svg { stroke: var(--teal); }
+.explainer-pill .pill-arrow {
+  width: 10px;
+  height: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.15rem;
+  transition: transform 0.25s var(--ease-spring);
+}
+.explainer-pill .pill-arrow svg { stroke: var(--text-muted); }
+.explainer-pill.open .pill-arrow { transform: rotate(180deg); }
+.explainer-pill.open {
+  background: var(--teal-light);
+  border-color: rgba(0,148,160,0.25);
+}
+
+.explainer-drawer {
+  display: none;
+  background: var(--surface);
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: 1.05rem 1.1rem 0.85rem;
+  margin-bottom: 1.1rem;
+  margin-top: -0.4rem;
+  box-shadow: var(--sh-1);
+  animation: drawerOpen 0.3s var(--ease-spring);
+}
+.explainer-drawer.open { display: block; }
+.explainer-drawer p {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+.explainer-drawer .mat-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+  margin-top: 0.55rem;
+}
+.explainer-drawer li {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  padding: 0.18rem 0;
+  list-style: none;
+  letter-spacing: -0.01em;
+}
+.explainer-drawer li::before { content: '· '; color: var(--teal); font-weight: 700; }
+
+@keyframes drawerOpen {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== ONBOARDING TOUR ===== */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: transparent;
+  display: none;
+}
+.tour-overlay.visible { display: block; }
+
+.tour-spotlight {
+  position: fixed;
+  border: 2.5px solid var(--teal);
+  border-radius: var(--r-lg);
+  box-shadow: 0 0 0 4000px rgba(13, 27, 39, 0.78), 0 0 24px rgba(0,148,160,0.6);
+  transition: all 0.4s var(--ease-spring);
+  pointer-events: none;
+  z-index: 401;
+}
+
+.tour-card {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  z-index: 402;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 1.15rem 1.15rem 0.85rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.16), 0 16px 48px rgba(0,0,0,0.24);
+  transition: top 0.4s var(--ease-spring), bottom 0.4s var(--ease-spring), opacity 0.25s var(--ease-out);
+}
+.tour-step-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+.tour-step-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.45rem;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.tour-step-body {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+}
+.tour-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tour-skip {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem 0.25rem;
+  min-height: 44px;
+  letter-spacing: -0.01em;
+  transition: opacity 0.15s;
+}
+.tour-skip:active { opacity: 0.5; }
+.tour-next-btn {
+  background: var(--teal);
+  color: white;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 0.5rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 36px;
+  letter-spacing: -0.01em;
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out);
+}
+.tour-next-btn:active {
+  background: var(--teal-dark);
+  transform: scale(0.96);
+}
+.tour-dots {
+  display: flex;
+  gap: 5px;
+}
+.tour-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(60,70,85,0.18);
+  transition: all 0.3s var(--ease-spring);
+}
+.tour-dot.active {
+  background: var(--teal);
+  transform: scale(1.3);
+}
+
+/* Pointer arrow */
+.tour-card::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--surface);
+  transform: rotate(45deg);
+  left: var(--arrow-left, 50%);
+}
+.tour-card.above::after {
+  bottom: -6px;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.04);
+}
+.tour-card.below::after {
+  top: -6px;
+  box-shadow: -2px -2px 4px rgba(0,0,0,0.04);
+}
+
+/* ===== TITLE SCREEN ===== */
+.title-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 310;
+  background: var(--midnight);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  transition: opacity 0.45s var(--ease-out), transform 0.45s var(--ease-spring);
+}
+.title-screen.exiting {
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+}
+.title-glow {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(0,148,160,0.16) 0%, rgba(0,148,160,0.04) 40%, transparent 70%);
+  pointer-events: none;
+  filter: blur(8px);
+}
+.title-labs {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.title-name {
+  font-size: 3.4rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 0.95;
+  margin-bottom: 0.6rem;
+  position: relative;
+  letter-spacing: -0.04em;
+}
+.title-mission {
+  font-size: 1.05rem;
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 3rem;
+  position: relative;
+  letter-spacing: -0.01em;
+}
+.title-continue {
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: var(--r-lg);
+  padding: 0.95rem 2.25rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 50px;
+  letter-spacing: -0.01em;
+  position: relative;
+  box-shadow: var(--sh-red);
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+.title-continue:active {
+  background: var(--red-dark);
+  transform: scale(0.96);
+  box-shadow: var(--sh-red-active);
+}
+.title-credit {
+  position: absolute;
+  bottom: calc(1.75rem + env(safe-area-inset-bottom));
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: rgba(255,255,255,0.22);
+}
+.title-credit span {
+  color: rgba(255,255,255,0.4);
+  font-weight: 500;
+}
+
+/* ===== WELCOME SCREEN ===== */
+.welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: var(--midnight);
+  display: none;
+  flex-direction: column;
+  transition: opacity 0.45s var(--ease-out), transform 0.45s var(--ease-spring);
+}
+.welcome.visible { display: flex; }
+.welcome.exiting {
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+.welcome-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: calc(2rem + env(safe-area-inset-top)) 1.5rem 1.25rem;
+}
+.welcome-greeting {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.1;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.03em;
+}
+.welcome-subtitle {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 2rem;
+  letter-spacing: -0.015em;
+}
+.welcome-body p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.78);
+  margin-bottom: 1rem;
+  letter-spacing: -0.015em;
+}
+.welcome-body strong {
+  color: var(--white);
+  font-weight: 600;
+}
+.welcome-body em {
+  font-style: normal;
+  color: var(--teal);
+  font-weight: 500;
+}
+.welcome-divider {
+  width: 32px;
+  height: 2px;
+  background: var(--teal);
+  border-radius: 2px;
+  margin: 1.65rem 0;
+}
+.welcome-carry-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 1.1rem;
+}
+.welcome-carry-item {
+  margin-bottom: 1.4rem;
+}
+.welcome-carry-item strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 0.3rem;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+.welcome-carry-item p {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.6);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.welcome-bottom {
+  flex-shrink: 0;
+  padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
+  background: var(--midnight);
+  position: relative;
+}
+.welcome-bottom::before {
+  content: '';
+  position: absolute;
+  top: -24px; left: 0; right: 0;
+  height: 24px;
+  background: linear-gradient(to top, var(--midnight), transparent);
+  pointer-events: none;
+}
+.welcome-begin {
+  display: block;
+  width: 100%;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: var(--r-lg);
+  padding: 1rem;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  min-height: 52px;
+  letter-spacing: -0.015em;
+  box-shadow: var(--sh-red);
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+  margin-bottom: 0.6rem;
+}
+.welcome-begin:active {
+  background: var(--red-dark);
+  transform: scale(0.985);
+  box-shadow: var(--sh-red-active);
+}
+.welcome-note {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+/* ===== TIMER SHEET — iOS-native bottom sheet ===== */
+.timer-sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 0.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.06), 0 -16px 48px rgba(0,0,0,0.16);
+  z-index: 200;
+  transform: translateY(100%);
+  transition: transform 0.42s var(--ease-spring);
+}
+.timer-sheet.open { transform: translateY(0); }
+.timer-sheet-handle {
+  width: 36px; height: 5px;
+  background: rgba(60,70,85,0.18);
+  border-radius: 3px;
+  margin: 0 auto 1.1rem;
+}
+.timer-sheet h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+.timer-big {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s var(--ease-out);
+}
+.timer-big.urgent { color: var(--red); }
+.timer-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 1.4rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.timer-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.timer-preset {
+  background: var(--off-white);
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--r-sm);
+  padding: 0.6rem 0.3rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: center;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+}
+.timer-preset:active {
+  background: var(--teal-light);
+  border-color: var(--teal);
+  color: var(--teal-dark);
+  transform: scale(0.96);
+}
+.timer-preset.selected {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: white;
+  font-weight: 600;
+}
+.timer-custom-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.timer-custom-input {
+  flex: 1;
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--r-sm);
+  padding: 0.65rem 0.85rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--off-white);
+  min-height: 46px;
+  text-align: center;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.2s var(--ease-out);
+}
+.timer-custom-input:focus {
+  outline: none;
+  border-color: var(--teal);
+  border-width: 1.5px;
+}
+.timer-custom-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
+}
+.timer-controls {
+  display: flex;
+  gap: 0.55rem;
+}
+.timer-btn {
+  flex: 1;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 0.85rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 50px;
+  letter-spacing: -0.015em;
+  transition: transform 0.15s var(--ease-spring), opacity 0.2s var(--ease-out);
+}
+.timer-btn:active { opacity: 0.82; transform: scale(0.985); }
+.timer-btn-start { background: var(--teal); color: white; box-shadow: 0 1px 4px rgba(0,148,160,0.2); }
+.timer-btn-stop { background: #fde8e8; color: #b01018; }
+.timer-btn-reset { background: var(--off-white); color: var(--text-secondary); border: 0.5px solid var(--hairline); }
+
+.timer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 27, 39, 0.4);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  z-index: 190;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+}
+.timer-overlay.open { display: block; opacity: 1; }
+
+/* ===== BLOCK LIST — iOS table view ===== */
+.block-list {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  background: var(--off-white);
+  padding-top: 0.5rem;
+}
+.block-list.open { display: block; }
+.card-area.hidden { display: none; }
+.bottom-bar.hidden { display: none; }
+.next-ticker.hidden { display: none; }
+.block-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem 1.25rem 0.85rem 1.1rem;
+  border-bottom: 0.5px solid var(--hairline);
+  cursor: pointer;
+  background: var(--surface);
+  min-height: 60px;
+  transition: background 0.15s var(--ease-out);
+}
+.block-list-item:active { background: rgba(0,148,160,0.08); }
+.block-list-item.current {
+  background: var(--teal-light);
+}
+.block-list-item.current::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--teal);
+}
+.block-list-item { position: relative; }
+.bl-time {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--teal-dark);
+  min-width: 70px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.005em;
+}
+.bl-title {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  flex: 1;
+}
+.block-list-item.current .bl-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.bl-chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--text-quaternary);
+  flex-shrink: 0;
+}
+.bl-chevron svg { stroke: currentColor; }
+
+</style>
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div class="title-screen" id="titleScreen">
+  <div class="title-glow"></div>
+  <div class="title-labs">The Upskilling Labs · Open Cycle · Phase 2</div>
+  <div class="title-name">Pod Sprint</div>
+  <div class="title-mission">fork + foray</div>
+  <button class="title-continue" onclick="showWelcome()">
+    Poderator run mode
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" style="margin-left: 0.5rem; vertical-align: -2px;">
+      <path d="M5 3 L10 8 L5 13" stroke="currentColor"/>
+    </svg>
+  </button>
+  <div class="title-credit">Created by <span>Levy Strategic Design</span></div>
+</div>
+
+<!-- WELCOME SCREEN -->
+<div class="welcome" id="welcomeScreen">
+  <div class="welcome-scroll">
+    <div class="welcome-greeting">Good morning, Poderator.</div>
+    <div class="welcome-subtitle">Here's what you need to carry into today.</div>
+
+    <div class="welcome-body">
+      <p>Today your Pod moves from studying a problem to <em>testing ideas about it</em>. By 4:30, every person will have a prototype and a plan to put it in front of a real user.</p>
+
+      <p>Your job is to <strong>keep time</strong>, <strong>hold the structure</strong>, and <strong>protect the room</strong>. You are not here to have the best ideas. You are here to make sure everyone else has the space to have theirs.</p>
+
+      <p>The timer is your primary tool — it lives in the center of your screen all day. The script for every block is one tap away. When you need to say something to the group, the exact words are here.</p>
+    </div>
+
+    <div class="welcome-divider"></div>
+    <div class="welcome-carry-label">Carry these with you today</div>
+
+    <div class="welcome-carry-item">
+      <strong>Most experiments will not become projects.</strong>
+      <p>That is the design working. Say this early and say it often. The person who pivoted twice and can explain why learned more than the person who never had to.</p>
+    </div>
+
+    <div class="welcome-carry-item">
+      <strong>What people feed the tools determines what comes out.</strong>
+      <p>The depth of the morning — the specificity of each person's take on the problem — is what makes the afternoon prototypes worth testing.</p>
+    </div>
+
+    <div class="welcome-carry-item">
+      <strong>You set the culture.</strong>
+      <p>If you are calm, the room is calm. If you are curious, the room is curious. If you treat rough work with respect, so will everyone else.</p>
+    </div>
+  </div>
+
+  <div class="welcome-bottom">
+    <button class="welcome-begin" onclick="dismissWelcome()">Begin — 9:00 · Breakfast</button>
+    <div class="welcome-note">12 blocks · 9:00 AM – 4:30 PM + drinks after</div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="topbar">
+    <span class="topbar-brand">Pod Sprint</span>
+    <span class="topbar-counter" id="counter"></span>
+    <button class="topbar-toggle" id="listToggle" onclick="toggleList()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6">
+        <line x1="2" y1="4" x2="14" y2="4"/>
+        <line x1="2" y1="8" x2="14" y2="8"/>
+        <line x1="2" y1="12" x2="14" y2="12"/>
+      </svg>
+      <span id="listToggleLabel">All blocks</span>
+    </button>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+  <div class="block-list" id="blockList"></div>
+  <div class="card-area" id="cardArea"></div>
+
+  <!-- NEXT-UP TICKER -->
+  <div class="next-ticker" id="nextTicker">
+    <div class="next-ticker-static">
+      <span class="next-ticker-label">Next Up</span>
+      <span class="next-ticker-pipe">|</span>
+      <span class="next-ticker-title" id="nextTickerTitle"></span>
+    </div>
+    <div class="next-ticker-scroll">
+      <div class="next-ticker-tape" id="nextTickerTape"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar" id="bottomBar">
+    <button class="bar-back" id="btnBack" onclick="go(-1)" disabled>
+      <span class="bar-back-arrow">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+          <path d="M12.5 4 L7 10 L12.5 16"/>
+        </svg>
+      </span>
+      <span class="bar-back-label">Back</span>
+    </button>
+
+    <button class="bar-timer" id="barTimer" onclick="openTimer()">
+      <div class="bar-timer-idle">
+        <span class="bar-timer-icon">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7">
+            <circle cx="10" cy="11" r="6.5"/>
+            <path d="M10 7.5 V11 L12.5 12.5"/>
+            <path d="M8 2.5 H12"/>
+            <path d="M10 2.5 V4.5"/>
+          </svg>
+        </span>
+        <span class="bar-timer-label">Timer</span>
+        <span class="bar-timer-idle-time" id="barTimerIdleTime">3:00</span>
+      </div>
+      <div class="bar-timer-active">
+        <span class="bar-timer-pulse"></span>
+        <span class="bar-timer-countdown" id="barTimerCountdown">0:00</span>
+        <span class="bar-timer-running-label">Tap to adjust</span>
+      </div>
+    </button>
+
+    <button class="bar-next" id="btnNext">
+      <span class="bar-next-arrow">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+          <path d="M7.5 4 L13 10 L7.5 16"/>
+        </svg>
+      </span>
+      <span class="bar-next-label">Next</span>
+    </button>
+  </div>
+
+  <!-- TIMER OVERLAY -->
+  <div class="timer-overlay" id="timerOverlay" onclick="closeTimer()"></div>
+
+  <!-- TIMER SHEET -->
+  <div class="timer-sheet" id="timerSheet">
+    <div class="timer-sheet-handle"></div>
+    <h3>Timer</h3>
+    <div class="timer-big" id="timerBig">3:00</div>
+    <div class="timer-sub" id="timerSub">Set time, then tap Start</div>
+    <div class="timer-presets">
+      <button class="timer-preset" onclick="setPreset(2)">2 min</button>
+      <button class="timer-preset selected" onclick="setPreset(3)">3 min</button>
+      <button class="timer-preset" onclick="setPreset(5)">5 min</button>
+      <button class="timer-preset" onclick="setPreset(8)">8 min</button>
+      <button class="timer-preset" onclick="setPreset(10)">10 min</button>
+      <button class="timer-preset" onclick="setPreset(15)">15 min</button>
+      <button class="timer-preset" onclick="setPreset(20)">20 min</button>
+      <button class="timer-preset" onclick="setPreset(30)">30 min</button>
+    </div>
+    <div class="timer-custom-row">
+      <input class="timer-custom-input" id="timerCustom" type="number" min="1" max="120" placeholder="–" inputmode="numeric" onchange="setCustom()">
+      <span class="timer-custom-label">min custom</span>
+    </div>
+    <div class="timer-controls">
+      <button class="timer-btn timer-btn-reset" onclick="resetTimer()">Reset</button>
+      <button class="timer-btn timer-btn-start" id="timerStartBtn" onclick="toggleTimer()">Start</button>
+    </div>
+  </div>
+
+  <!-- ONBOARDING TOUR -->
+  <div class="tour-overlay" id="tourOverlay">
+    <div class="tour-spotlight" id="tourSpotlight"></div>
+    <div class="tour-card">
+      <div class="tour-step-label" id="tourStepLabel"></div>
+      <div class="tour-step-title" id="tourStepTitle"></div>
+      <div class="tour-step-body" id="tourStepBody"></div>
+      <div class="tour-actions">
+        <button class="tour-skip" onclick="closeTour()">Skip tour</button>
+        <div class="tour-dots" id="tourDots"></div>
+        <button class="tour-next-btn" onclick="tourNext()" id="tourNextLabel">Next</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const blocks = [
+  {
+    time: "9:00–9:30", mode: "Community", modeClass: "", durationMin: 30,
+    title: "Breakfast, coffee, and introductions",
+    say: [{ text: "No script needed. Circulate. Connect people who are standing alone." }],
+    doItems: ["Food, coffee, name tags ready before 9:00","Introduce newcomers to Pod members","At 9:25: direct newcomers to onboarding space"],
+    success: "Everyone has talked to at least one person. Newcomers know a Pod member. Tracks separate at 9:30.",
+    why: "People are about to share personal takes on a complex problem. That is easier when you already know someone\u2019s name.",
+    materials: ["Coffee, tea, water, light breakfast","Name tags + markers","Pod labels on tables/walls","Newbie space ready"],
+  },
+  {
+    time: "9:30–9:45", mode: "Pod", modeClass: "", durationMin: 15,
+    title: "Frame & orient",
+    say: [
+      { label: "After someone reads the problem statement:", text: "\u201cIn Explore, your Pod validated that this problem exists and studied how it shows up. Today you are going to hypothesize <em>why</em> it shows up and how you might intervene. By end of day, each of you will have a prototype and a test plan.\u201d" },
+      { label: "Name the morning:", text: "\u201cEach of you gives a short talk about your take. While you listen, you\u2019ll write How Might We questions. Those questions become the raw material for choosing directions.\u201d" },
+    ],
+    doItems: ["Ask one Pod member to read the problem statement aloud","Pause after the read \u2014 let it sit","DO NOT mention the direction cap or scoring"],
+    success: "Problem statement heard aloud. People understand the morning structure. No one is thinking about constraints.",
+    why: "The cap is hidden until scoring so people don\u2019t self-limit during the creative steps.",
+    materials: ["Printed problem statement or posted on wall"],
+  },
+  {
+    time: "9:45–10:25", mode: "Pod", modeClass: "", durationMin: 40,
+    title: "Lightning talks + live HMWs",
+    say: [{ label: "Before starting:", text: "\u201cEach person has 3 minutes. Not a summary of Explore \u2014 your argument for what is really going on. While you listen, write How Might We\u2019s. One per card. Format: <em>How might we [verb] [for whom] so that [outcome]?</em>\u201d" }],
+    doItems: ["Hand out cards (20\u201330 per person) and markers","Post sample HMW format on wall","Strict 3-min timer per person. 30-second warning. Cut kindly.","No discussion after each talk \u2014 HMW cards are the response","After all talks: 2 min to finish writing"],
+    success: "Every person spoke. Every person has a stack of HMW cards. Multiple takes heard. No single view dominated.",
+    why: "Individual HMW writing during talks produces real divergence \u2014 each listener interprets the speaker\u2019s angle differently.",
+    materials: ["Large card stack (20\u201330/person)","Markers","Timer","HMW format posted"],
+  },
+  {
+    time: "10:25–11:05", mode: "Pod", modeClass: "", durationMin: 40,
+    title: "Sense-making",
+    say: [
+      { label: "After silent read:", text: "\u201cGroup these by shared logic. Look for HMWs that assume the same thing about why the problem exists.\u201d" },
+      { label: "When clusters form:", text: "\u201cName each direction: <em>The problem is [X] because [Y], and this direction addresses it by [Z].</em>\u201d" },
+    ],
+    doItems: ["Everyone posts all HMW cards on wall at once \u2014 no organizing","Timer: 5 min silent read. No talking, no moving cards.","Let the Pod cluster. Don\u2019t impose categories.","Watch for: clusters by surface words (bad) vs. shared logic (good)","Direction statements must name approach, not just describe a problem","Write direction statements on large cards, top of each cluster"],
+    success: "Clear clusters with direction statements naming both a problem assumption and an approach. Genuinely different bets visible.",
+    why: "Silent read first forces everyone to see the full landscape before anyone starts sorting.",
+    materials: ["Wall with HMW cards","Large cards for directions","Markers","Timer"],
+  },
+  {
+    time: "11:05–11:30", mode: "Converge", modeClass: "converge", durationMin: 25,
+    title: "Scoring",
+    say: [
+      { label: "Introduce the cap:", text: "\u201cYour Pod has <em>[N]</em> people, so you can advance <em>[N\u00f73]</em> directions. Every direction needs enough people behind it to form a project team later.\u201d" },
+      { label: "Hand out sheets:", text: "\u201cScore every direction. No talking. Circle No, Maybe, or Yes for each dimension.\u201d" },
+      { label: "After tallying:", text: "\u201cArchived directions are not gone. They are not failures. Every direction on this wall represents real thinking from this Pod.\u201d" },
+    ],
+    doItems: ["Write cap number on wall \u2014 large and visible","Timer: 8\u201310 min for scoring","Collect sheets. Tally blind. Post results.","Draw clear line between advancing and archived","Ties: one runoff round on tied directions only"],
+    success: "Clear advancing directions. Everyone understands the cap. Archived directions still visible.",
+    why: "Cap introduced NOW (not earlier) \u2014 knowing it during creative steps would have limited divergence. Pod size \u00f7 3 = enough people per direction for a Phase 3 team.",
+    materials: ["Scoring sheets","Pens","Tally surface","Timer","Cap number card"],
+  },
+  {
+    time: "11:30–12:30", mode: "Lunch", modeClass: "lunch", durationMin: 60,
+    title: "Break + merge",
+    say: [{ label: "To the Pod:", text: "\u201cBrief the newcomers on your problem and your directions over lunch. They\u2019ll have questions \u2014 answer them.\u201d" }],
+    doItems: ["Post surviving directions clearly before lunch","Seat newcomers with their Pod","Do NOT run a formal briefing \u2014 let it happen conversationally","At 12:20: ten-minute heads-up"],
+    success: "Newcomers understand the problem and directions. Pod members have explained directions out loud to someone new.",
+    why: "When a Pod member explains a direction to a newcomer in plain language, it often clarifies things for the Pod member too.",
+    materials: ["Lunch","Surviving directions posted"],
+  },
+  {
+    time: "12:30–1:00", mode: "Pod", modeClass: "", durationMin: 30,
+    title: "Fresh-eyes review + direction pick",
+    say: [{ label: "Introduce the review:", text: "\u201cThese folks were not in the room this morning. They\u2019ve read your problem statement and just heard your directions at lunch. They\u2019re going to ask you questions. Answer them honestly.\u201d" }],
+    doItems: ["10\u201315 min for newcomer questions","If a question reveals something new: name it","Review does NOT change which directions advanced","After review: each person states their direction + one sentence why","Write names under directions on wall"],
+    success: "Everyone has declared a direction. Wall shows the full afternoon picture.",
+    why: "Newcomers have no attachment to any direction. They ask the questions the Pod stopped asking itself.",
+    materials: ["Wall with directions","Sticky notes for names"],
+  },
+  {
+    time: "1:00–1:45", mode: "Individual", modeClass: "", durationMin: 45,
+    title: "Plan your experiment",
+    say: [{ label: "Post these four questions:", text: "\u201c<em>1.</em> What exactly am I going to do? <em>2.</em> Who is the first person I will test this with? <em>3.</em> What is the smallest version I can build? <em>4.</em> What do I want to learn from testing it once?\u201d" }],
+    doItems: ["Hand out index cards \u2014 one per person","Timer: 15 min for writing","After writing: each person shares card with one other (2 min). Sense-check only.","Check newcomers: do they understand the direction enough to write a specific experiment?"],
+    success: "Every person has a filled card with all four questions answered.",
+    why: "The index card is a constraint on purpose. If it doesn\u2019t fit on one card, it\u2019s too complicated for this stage.",
+    materials: ["Index cards","Pens","Four questions posted on wall"],
+  },
+  {
+    time: "1:45–3:30", mode: "Individual", modeClass: "", durationMin: 105,
+    title: "Build your prototype",
+    say: [
+      { label: "At 2:30 \u2014 Pivot gate:", text: "\u201cCan a real person react to what you are building?\u201d If no: change the format, not the idea. A pivot is a sign of paying attention, not falling behind." },
+      { label: "At 3:15 \u2014 Test plan gate:", text: "\u201cDo you have a specific person, a way to reach them, and a date?\u201d" },
+      { label: "If someone is stuck:", text: "\u201cWhat is the one thing you want to learn?\u201d" },
+    ],
+    doItems: ["Announce start. Then let people focus.","Check in with newcomers first at each gate","An interview guide counts. A written theory does not."],
+    success: "Every person has a prototype by 3:30. Each person can name their test user and timeline.",
+    why: "This is the most important block. The prototype doesn\u2019t need to be polished \u2014 it needs to be reactive.",
+    materials: ["Laptops, Wi-Fi, power strips","Quiet space"],
+  },
+  {
+    time: "3:30–4:15", mode: "Pod", modeClass: "", durationMin: 45,
+    title: "Show your work",
+    say: [
+      { label: "Before starting:", text: "\u201cNot a pitch. Show what you built. Say who you\u2019re testing with. One clarifying question from the group \u2014 not feedback, not advice.\u201d" },
+      { label: "After the last person:", text: "\u201cEveryone has a prototype and a test plan. Run your tests. Most of these experiments will change shape. Some won\u2019t work. That is the point \u2014 you are testing, not performing.\u201d" },
+    ],
+    doItems: ["Divide 45 min by total people = time per person","Keep time strictly","If feedback creeps in: \u201cLet\u2019s keep it to clarifying questions.\u201d"],
+    success: "Every person showed something. No one was criticized for rough work.",
+    why: "The one-question rule protects people showing unfinished work. The person who pivoted twice and can explain why is more valuable than the person who never tested.",
+    materials: ["Timer"],
+  },
+  {
+    time: "4:15–4:30", mode: "All", modeClass: "lunch", durationMin: 15,
+    title: "Wrap up and clear the space",
+    say: [{ text: "\u201cWe\u2019re done. Let\u2019s clean up. We\u2019re heading to <em>[location]</em> for drinks.\u201d" }],
+    doItems: ["Photograph EVERY section of every Pod wall \u2014 full shots + close-ups","Stack cards by Pod and section. Bag and label.","Clear tables, trash, furniture","Everyone OUT by 4:30"],
+    success: "Walls documented. Space clean. Out by 4:30.",
+    why: null,
+    materials: ["Phone/camera","Bags for cards","Trash bags","Post-event address"],
+  },
+  {
+    time: "After 4:30", mode: "Social", modeClass: "", durationMin: null,
+    title: "Drinks and food in Capitol Hill",
+    say: [{ text: "No script. Walk with the group. Be present. Celebrate the day." }],
+    doItems: [],
+    success: "People are talking about the day and each other\u2019s ideas. The group feels like a real group.",
+    why: "This is where the community actually forms.",
+    materials: [],
+  },
+];
+
+let current = 0;
+let listOpen = false;
+
+// ===== RENDER =====
+function render() {
+  const b = blocks[current];
+  const total = blocks.length;
+
+  document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
+  document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
+
+  let html = '';
+  html += '<div class="time-block">';
+  html += '<span class="time-range">' + b.time + '</span>';
+  html += '<span class="mode-tag ' + b.modeClass + '">' + b.mode + '</span>';
+  if (b.durationMin) html += '<span class="duration-tag">' + b.durationMin + ' min</span>';
+  html += '</div>';
+  html += '<div class="block-title">' + b.title + '</div>';
+
+  // Explainer & Materials pill at top
+  if (b.why || (b.materials && b.materials.length)) {
+    html += '<button class="explainer-pill" onclick="toggleExplainer(this)">';
+    html += '<span class="pill-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><path d="M8 11V8" /><circle cx="8" cy="5.25" r="0.5" fill="currentColor" stroke="none"/></svg></span>';
+    html += '<span>Explainer & materials</span>';
+    html += '<span class="pill-arrow"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><path d="M2.5 4.5 L6 8 L9.5 4.5"/></svg></span>';
+    html += '</button>';
+    html += '<div class="explainer-drawer">';
+    if (b.why) html += '<p>' + b.why + '</p>';
+    if (b.materials && b.materials.length) {
+      html += '<div class="mat-label">Materials needed</div><ul>';
+      for (const m of b.materials) html += '<li>' + m + '</li>';
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+
+  for (const s of b.say) {
+    html += '<div class="say-box">';
+    html += '<div class="say-label">' + (s.label || 'SAY / DO') + '</div>';
+    html += '<div class="say-text">' + s.text + '</div>';
+    html += '</div>';
+  }
+
+  if (b.doItems.length) {
+    html += '<div class="do-section"><div class="do-label">CHECKLIST</div>';
+    for (const d of b.doItems) {
+      html += '<div class="do-item"><span class="do-bullet"></span><span>' + d + '</span></div>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div class="success-check">';
+  html += '<div class="success-check-label">BEFORE MOVING ON</div>';
+  html += '<div class="success-check-text">' + b.success + '</div>';
+  html += '</div>';
+
+  document.getElementById('cardArea').innerHTML = html;
+  document.getElementById('cardArea').scrollTop = 0;
+
+  // Update bottom bar + ticker
+  const btnBack = document.getElementById('btnBack');
+  const btnNext = document.getElementById('btnNext');
+  const tickerTitle = document.getElementById('nextTickerTitle');
+  const tickerTape = document.getElementById('nextTickerTape');
+  const ticker = document.getElementById('nextTicker');
+
+  btnBack.disabled = current === 0;
+
+  if (current < total - 1) {
+    const next = blocks[current + 1];
+    tickerTitle.textContent = next.title;
+    ticker.classList.remove('done');
+    btnNext.disabled = false;
+    btnNext.classList.remove('disabled');
+    btnNext.onclick = function() { go(1); };
+
+    // Build scrolling cascade: remaining blocks → end-of-day state
+    const remaining = blocks.slice(current + 2);
+    let tape = '';
+    for (const rb of remaining) {
+      tape += '<span class="sep">→</span><span>' + rb.title + '</span>';
+    }
+    tape += '<span class="sep">→</span><span class="end-state">Everyone leaves with a prototype + test plan</span>';
+    // Duplicate for seamless loop
+    tape += '<span style="padding:0 2rem"></span>';
+    for (const rb of remaining) {
+      tape += '<span class="sep">→</span><span>' + rb.title + '</span>';
+    }
+    tape += '<span class="sep">→</span><span class="end-state">Everyone leaves with a prototype + test plan</span>';
+    tickerTape.innerHTML = tape;
+
+    // Adjust speed based on content length
+    const itemCount = remaining.length + 1;
+    tickerTape.style.setProperty('--ticker-duration', Math.max(12, itemCount * 3.5) + 's');
+  } else {
+    tickerTitle.textContent = 'End of day';
+    tickerTape.innerHTML = '<span class="end-state">Drinks in Capitol Hill</span>';
+    ticker.classList.add('done');
+    btnNext.disabled = true;
+    btnNext.classList.add('disabled');
+    btnNext.onclick = null;
+  }
+
+  // Update timer idle display
+  if (!timerRunning) {
+    const idleTime = document.getElementById('barTimerIdleTime');
+    if (b.durationMin) {
+      idleTime.textContent = formatTime(timerSeconds);
+      idleTime.style.display = '';
+    } else {
+      idleTime.style.display = 'none';
+    }
+  }
+
+  renderList();
+}
+
+function go(dir) {
+  const next = current + dir;
+  if (next < 0 || next >= blocks.length) return;
+  current = next;
+  if (listOpen) toggleList();
+  // Smart timer: auto-load block duration if timer is not running
+  if (!timerRunning) {
+    const dur = blocks[current].durationMin;
+    if (dur) {
+      timerSeconds = dur * 60;
+      timerOriginal = timerSeconds;
+      updateTimerDisplay();
+      document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('selected'));
+    }
+  }
+  // Subtle haptic on advance
+  if (navigator.vibrate) navigator.vibrate(8);
+  render();
+}
+
+function toggleDetails(btn) {
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+  btn.textContent = content.classList.contains('open') ? 'Hide ↑' : 'Why + materials ↓';
+}
+
+function toggleList() {
+  listOpen = !listOpen;
+  document.getElementById('blockList').classList.toggle('open', listOpen);
+  document.getElementById('cardArea').classList.toggle('hidden', listOpen);
+  document.getElementById('bottomBar').classList.toggle('hidden', listOpen);
+  document.getElementById('nextTicker').classList.toggle('hidden', listOpen);
+  document.getElementById('listToggleLabel').textContent = listOpen ? 'Close' : 'All blocks';
+  if (listOpen) renderList();
+}
+
+function renderList() {
+  let html = '';
+  blocks.forEach((b, i) => {
+    html += '<div class="block-list-item' + (i === current ? ' current' : '') + '" onclick="jumpTo(' + i + ')">';
+    html += '<span class="bl-time">' + b.time + '</span>';
+    html += '<span class="bl-title">' + b.title + '</span>';
+    html += '<span class="bl-chevron"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><path d="M5 3 L9 7 L5 11"/></svg></span>';
+    html += '</div>';
+  });
+  document.getElementById('blockList').innerHTML = html;
+}
+
+function jumpTo(i) {
+  current = i;
+  if (listOpen) toggleList();
+  if (!timerRunning) {
+    const dur = blocks[current].durationMin;
+    if (dur) {
+      timerSeconds = dur * 60;
+      timerOriginal = timerSeconds;
+      updateTimerDisplay();
+      document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('selected'));
+    }
+  }
+  render();
+}
+
+// ===== TIMER =====
+let timerSeconds = 180; // default 3 min
+let timerRunning = false;
+let timerInterval = null;
+let timerOriginal = 180;
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function updateTimerDisplay() {
+  const big = document.getElementById('timerBig');
+  const barCountdown = document.getElementById('barTimerCountdown');
+  const barIdleTime = document.getElementById('barTimerIdleTime');
+  const barTimerBtn = document.getElementById('barTimer');
+  const sub = document.getElementById('timerSub');
+  const formatted = formatTime(timerSeconds);
+  big.textContent = formatted;
+  barCountdown.textContent = formatted;
+  barIdleTime.textContent = formatted;
+  big.classList.toggle('urgent', timerSeconds <= 30 && timerRunning);
+  barTimerBtn.classList.toggle('urgent', timerSeconds <= 30 && timerRunning);
+  if (!timerRunning) {
+    sub.textContent = timerSeconds === timerOriginal ? 'Set time, then tap Start' : 'Paused';
+  } else {
+    sub.textContent = timerSeconds <= 0 ? '\u23f0 Time\u2019s up!' : 'Running\u2026';
+  }
+}
+
+function setPreset(mins) {
+  if (timerRunning) return;
+  timerSeconds = mins * 60;
+  timerOriginal = timerSeconds;
+  document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+  document.getElementById('timerCustom').value = '';
+  updateTimerDisplay();
+}
+
+function setCustom() {
+  if (timerRunning) return;
+  const val = parseInt(document.getElementById('timerCustom').value);
+  if (val > 0 && val <= 120) {
+    timerSeconds = val * 60;
+    timerOriginal = timerSeconds;
+    document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('selected'));
+    updateTimerDisplay();
+  }
+}
+
+function toggleTimer() {
+  const barTimerBtn = document.getElementById('barTimer');
+  const startBtn = document.getElementById('timerStartBtn');
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    startBtn.textContent = 'Resume';
+    startBtn.style.background = 'var(--teal)';
+    barTimerBtn.classList.remove('running');
+  } else {
+    if (timerSeconds <= 0) { resetTimer(); return; }
+    timerRunning = true;
+    startBtn.textContent = 'Pause';
+    startBtn.style.background = 'var(--amber)';
+    barTimerBtn.classList.add('running');
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        startBtn.textContent = 'Start';
+        startBtn.style.background = 'var(--teal)';
+        barTimerBtn.classList.remove('running');
+        if (navigator.vibrate) navigator.vibrate([400, 100, 400, 100, 400]);
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          [0, 0.35, 0.7].forEach(t => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.4, ctx.currentTime + t);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.25);
+            osc.start(ctx.currentTime + t);
+            osc.stop(ctx.currentTime + t + 0.3);
+          });
+        } catch(e) {}
+        document.getElementById('timerSub').textContent = '\u23f0 Time\u2019s up!';
+        document.getElementById('timerBig').classList.add('urgent');
+      }
+    }, 1000);
+  }
+  updateTimerDisplay();
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = timerOriginal;
+  document.getElementById('timerStartBtn').textContent = 'Start';
+  document.getElementById('timerStartBtn').style.background = 'var(--teal)';
+  document.getElementById('barTimer').classList.remove('running', 'urgent');
+  document.getElementById('timerBig').classList.remove('urgent');
+  updateTimerDisplay();
+}
+
+function openTimer() {
+  document.getElementById('timerSheet').classList.add('open');
+  document.getElementById('timerOverlay').classList.add('open');
+  updateTimerDisplay();
+  if (navigator.vibrate) navigator.vibrate(8);
+}
+
+function closeTimer() {
+  document.getElementById('timerSheet').classList.remove('open');
+  document.getElementById('timerOverlay').classList.remove('open');
+}
+
+// Drag-to-dismiss on timer sheet
+(function setupSheetDrag() {
+  const sheet = document.getElementById('timerSheet');
+  let dragStartY = 0, dragCurrentY = 0, dragging = false;
+
+  sheet.addEventListener('touchstart', e => {
+    // Only allow drag from the handle area (top 60px) or directly on the sheet bg
+    const r = sheet.getBoundingClientRect();
+    const localY = e.touches[0].clientY - r.top;
+    if (localY > 60 && e.target !== sheet && !e.target.classList.contains('timer-sheet-handle')) return;
+    dragStartY = e.touches[0].clientY;
+    dragging = true;
+    sheet.style.transition = 'none';
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    dragCurrentY = e.touches[0].clientY - dragStartY;
+    if (dragCurrentY > 0) {
+      sheet.style.transform = `translateY(${dragCurrentY}px)`;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = '';
+    if (dragCurrentY > 100) {
+      closeTimer();
+    } else {
+      sheet.style.transform = '';
+    }
+    dragCurrentY = 0;
+  }, { passive: true });
+})();
+
+// ===== SWIPE =====
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (listOpen) return;
+  if (document.getElementById('timerSheet').classList.contains('open')) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    if (dx < 0) go(1);
+    else go(-1);
+  }
+}, { passive: true });
+
+// ===== EXPLAINER TOGGLE =====
+function toggleExplainer(btn) {
+  const drawer = btn.nextElementSibling;
+  btn.classList.toggle('open');
+  drawer.classList.toggle('open');
+}
+
+// ===== TITLE + WELCOME + TOUR =====
+const tourSteps = [
+  {
+    target: '.bar-timer',
+    title: 'Timer — your primary tool',
+    body: 'Tap to open. It auto-loads the duration for each block. Start, pause, reset. When it hits zero, your phone vibrates and beeps.',
+  },
+  {
+    target: '.bar-back',
+    title: 'Back',
+    body: 'Go to the previous block. Disabled on the first block.',
+  },
+  {
+    target: '.bar-next',
+    title: 'Next',
+    body: 'Advance to the next block. The teal ticker strip above shows what\u2019s coming and how the rest of the day flows.',
+  },
+  {
+    target: '.next-ticker',
+    title: 'The ticker',
+    body: 'Always shows the next block\u2019s name. The scrolling tape shows the full remaining arc of the day — where the Pod needs to land by 4:30.',
+  },
+  {
+    target: '.explainer-pill',
+    title: 'Explainer & materials',
+    body: 'At the top of every block. Tap to see why this step is designed this way and what materials you need. Closed by default so it doesn\u2019t get in the way of the script.',
+  },
+];
+
+let tourStep = 0;
+
+function startTour() {
+  tourStep = 0;
+  document.getElementById('tourOverlay').classList.add('visible');
+  renderTourStep();
+}
+
+function renderTourStep() {
+  const step = tourSteps[tourStep];
+  const total = tourSteps.length;
+  const el = document.querySelector(step.target);
+  const spot = document.getElementById('tourSpotlight');
+  const card = document.querySelector('.tour-card');
+  const gap = 14;
+  const pad = 6;
+
+  if (el) {
+    const r = el.getBoundingClientRect();
+    const vh = window.innerHeight;
+
+    // Position spotlight
+    spot.style.left = (r.left - pad) + 'px';
+    spot.style.top = (r.top - pad) + 'px';
+    spot.style.width = (r.width + pad * 2) + 'px';
+    spot.style.height = (r.height + pad * 2) + 'px';
+    spot.style.display = 'block';
+
+    // Decide: place card above or below the element
+    const spaceAbove = r.top;
+    const spaceBelow = vh - r.bottom;
+    const arrowLeftPx = Math.min(Math.max(r.left + r.width / 2 - 16, 24), window.innerWidth - 48);
+
+    card.classList.remove('above', 'below');
+    card.style.removeProperty('top');
+    card.style.removeProperty('bottom');
+    card.style.setProperty('--arrow-left', arrowLeftPx + 'px');
+
+    if (spaceAbove > spaceBelow) {
+      // Card goes above the element
+      card.classList.add('above');
+      card.style.bottom = (vh - r.top + gap) + 'px';
+    } else {
+      // Card goes below the element
+      card.classList.add('below');
+      card.style.top = (r.bottom + gap) + 'px';
+    }
+  } else {
+    spot.style.display = 'none';
+    card.classList.remove('above', 'below');
+    card.style.bottom = '1rem';
+  }
+
+  document.getElementById('tourStepLabel').textContent = 'Step ' + (tourStep + 1) + ' of ' + total;
+  document.getElementById('tourStepTitle').textContent = step.title;
+  document.getElementById('tourStepBody').textContent = step.body;
+  document.getElementById('tourNextLabel').textContent = tourStep < total - 1 ? 'Next' : 'Got it';
+
+  let dots = '';
+  for (let i = 0; i < total; i++) {
+    dots += '<div class="tour-dot' + (i === tourStep ? ' active' : '') + '"></div>';
+  }
+  document.getElementById('tourDots').innerHTML = dots;
+}
+
+function tourNext() {
+  if (tourStep < tourSteps.length - 1) {
+    tourStep++;
+    renderTourStep();
+  } else {
+    closeTour();
+  }
+}
+
+function closeTour() {
+  document.getElementById('tourOverlay').classList.remove('visible');
+}
+
+function showWelcome() {
+  const t = document.getElementById('titleScreen');
+  t.classList.add('exiting');
+  setTimeout(() => {
+    t.style.display = 'none';
+    document.getElementById('welcomeScreen').classList.add('visible');
+  }, 400);
+}
+
+function dismissWelcome() {
+  const w = document.getElementById('welcomeScreen');
+  w.classList.add('exiting');
+  setTimeout(() => {
+    w.style.display = 'none';
+    startTour();
+  }, 400);
+}
+
+// Init — auto-set timer to first block's duration
+timerSeconds = blocks[0].durationMin * 60;
+timerOriginal = timerSeconds;
+render();
+updateTimerDisplay();
+</script>
+
+</body>
+</html>
