@@ -1451,6 +1451,68 @@ button { font-family: inherit; touch-action: manipulation; }
   color: var(--text-secondary);
   letter-spacing: -0.01em;
 }
+.dashboard-row {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1.6rem;
+}
+.dashboard-row-2col {
+  grid-template-columns: 1fr 1fr;
+}
+.dash-card.compact {
+  padding: 0.85rem 0.9rem 0.95rem;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.dash-card.compact .dash-card-eyebrow {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.dash-card.compact .dash-card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.dash-card.compact .dash-badge {
+  align-self: flex-start;
+  font-size: 0.55rem;
+  padding: 0.18rem 0.4rem;
+}
+.dash-card.compact .dash-card-desc {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.dash-event-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--teal-light);
+  color: var(--teal-dark);
+  border-radius: var(--r-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  transition: background 0.2s var(--ease-out);
+}
+.dash-event-link:active { background: rgba(0,148,160,0.18); }
+.dash-event-link .dash-event-host {
+  color: var(--teal-dark);
+  font-weight: 500;
+  opacity: 0.85;
+}
+.dash-event-link .dash-event-arrow {
+  font-weight: 700;
+}
 
 /* ============================================================
    9. GUIDE WELCOME SCREEN — Layer 3 entry
@@ -1953,6 +2015,7 @@ const UPCOMING_PROGRAMMING = [
   {
     title: 'Pod Sprint & Hackathon',
     description: 'A one-day working session where pods move from problem understanding to early prototypes, tests, and project directions.',
+    eventLink: 'https://luma.com/c02-podsprint',
     cta: { label: 'Open Facilitation Guide', action: 'openGuide' },
   },
 ];
@@ -2723,26 +2786,18 @@ function renderDashboard() {
   const root = document.getElementById('dashboardSections');
   let html = '';
 
-  // Current Cycle
-  html += '<div class="dashboard-section">';
-  html += '<div class="dashboard-section-label">Current Cycle</div>';
-  html += '<div class="dash-card">';
-  html += '<div class="dash-card-header">';
+  // Current Cycle + My Pods (compact 2-col row)
+  html += '<div class="dashboard-row dashboard-row-2col">';
+  html += '<div class="dash-card compact">';
+  html += '<div class="dash-card-eyebrow">Current Cycle</div>';
   html += '<div class="dash-card-title">' + CURRENT_CYCLE.name + '</div>';
   html += '<span class="dash-badge">' + CURRENT_CYCLE.status + '</span>';
-  html += '</div>';
   html += '<div class="dash-card-desc">' + CURRENT_CYCLE.description + '</div>';
   html += '</div>';
-  html += '</div>';
-
-  // My Pods
-  html += '<div class="dashboard-section">';
-  html += '<div class="dashboard-section-label">My Pods</div>';
-  html += '<div class="dash-card">';
-  html += '<div class="dash-card-header">';
+  html += '<div class="dash-card compact">';
+  html += '<div class="dash-card-eyebrow">My Pods</div>';
   html += '<div class="dash-card-title">My Pods</div>';
   html += '<span class="dash-badge">' + MY_PODS_PLACEHOLDER.status + '</span>';
-  html += '</div>';
   html += '<div class="dash-card-desc">' + MY_PODS_PLACEHOLDER.description + '</div>';
   html += '</div>';
   html += '</div>';
@@ -2756,6 +2811,13 @@ function renderDashboard() {
     html += '<div class="dash-card-title">' + item.title + '</div>';
     html += '</div>';
     html += '<div class="dash-card-desc">' + item.description + '</div>';
+    if (item.eventLink) {
+      html += '<a class="dash-event-link" href="' + item.eventLink + '" target="_blank" rel="noopener noreferrer">';
+      html += '<span>Event link</span>';
+      html += '<span class="dash-event-host">luma.com/c02-podsprint</span>';
+      html += '<span class="dash-event-arrow">↗</span>';
+      html += '</a>';
+    }
     if (item.cta && item.cta.action === 'openGuide') {
       html += '<button class="dash-cta" onclick="openGuideWelcome()">' + item.cta.label + '</button>';
     }
