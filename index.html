@@ -7,11 +7,25 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#101820">
 <meta name="format-detection" content="telephone=no">
-<title>Pod Sprint — Run Mode</title>
+<title>Pod Moderator Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* ============================================================
+   POD MODERATOR HUB — STYLES TABLE OF CONTENTS
+   1. Design tokens (CSS variables)
+   2. Base, app shell, topbar, progress
+   3. Card area, scripts, checklist, success-check
+   4. Timer bar, timer sheet
+   5. Block list, ticker, swipe nav
+   6. Tour overlay
+   7. Landing screen           (Layer 1)
+   8. Dashboard screen         (Layer 2 — OLOS prototype)
+   9. Guide welcome screen     (Layer 3 entry)
+  10. Guide onboarding screen  (Layer 3 — I'm new / done before / Skip)
+  11. Room Help sheet          (Layer 3 — stuck-moment scripts)
+   ============================================================ */
 :root {
   /* Brand colors */
   --teal: #0094a0;
@@ -1235,40 +1249,493 @@ button { font-family: inherit; touch-action: manipulation; }
 }
 .bl-chevron svg { stroke: currentColor; }
 
+/* ============================================================
+   7. LANDING SCREEN — Layer 1
+   Reuses .title-screen / .title-labs / .title-name / .title-credit
+   styles above. Adds a subtitle and footer specific to the hub.
+   ============================================================ */
+.landing-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.55);
+  margin: 0.4rem 0 2.4rem;
+  letter-spacing: -0.015em;
+  line-height: 1.45;
+  max-width: 22rem;
+  position: relative;
+}
+.landing-footer {
+  position: absolute;
+  bottom: calc(0.9rem + env(safe-area-inset-bottom));
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: rgba(255,255,255,0.32);
+}
+
+/* ============================================================
+   8. DASHBOARD SCREEN — Layer 2 (OLOS Prototype)
+   ============================================================ */
+.dashboard {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: var(--off-white);
+  display: none;
+  flex-direction: column;
+  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-spring);
+}
+.dashboard.visible { display: flex; }
+.dashboard.exiting {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+.dashboard-topbar {
+  flex-shrink: 0;
+  background: var(--midnight);
+  padding: max(env(safe-area-inset-top), 0px) 1rem 0;
+  min-height: calc(44px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dashboard-topbrand {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.dashboard-proto-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.dashboard-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: 1.5rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+}
+.dashboard-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--teal-dark);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+.dashboard-title {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.6rem;
+}
+.dashboard-intro {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.8rem;
+}
+.dashboard-section {
+  margin-bottom: 1.6rem;
+}
+.dashboard-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin: 0 0.25rem 0.6rem;
+}
+.dash-card {
+  background: var(--surface);
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-1);
+  padding: 1.1rem 1.1rem 1.15rem;
+  margin-bottom: 0.75rem;
+}
+.dash-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+.dash-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.dash-card-desc {
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+}
+.dash-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(122, 139, 150, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+.dash-card.active {
+  border-color: rgba(0, 148, 160, 0.35);
+  box-shadow: 0 2px 10px rgba(0, 148, 160, 0.08), 0 1px 2px rgba(13, 27, 39, 0.04);
+}
+.dash-cta {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  background: var(--teal);
+  color: white;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 0.85rem 1rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  min-height: 48px;
+  box-shadow: 0 2px 8px rgba(0, 148, 160, 0.22);
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out);
+}
+.dash-cta:active {
+  background: var(--teal-dark);
+  transform: scale(0.985);
+}
+.dash-material {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: var(--surface);
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+  cursor: default;
+}
+.dash-material-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   9. GUIDE WELCOME SCREEN — Layer 3 entry
+   Reuses .welcome shell. Adds a Start Setup / Skip button row,
+   plus a small back-to-dashboard link.
+   ============================================================ */
+.welcome-back {
+  position: absolute;
+  top: calc(0.9rem + env(safe-area-inset-top));
+  left: 0.9rem;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background 0.2s var(--ease-out);
+}
+.welcome-back:active { background: rgba(255,255,255,0.16); }
+.welcome-eyebrow {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.welcome-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+.welcome-skip {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: var(--r-lg);
+  padding: 1rem 1.4rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 52px;
+  letter-spacing: -0.01em;
+  transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-spring);
+}
+.welcome-skip:active {
+  background: rgba(255,255,255,0.18);
+  transform: scale(0.985);
+}
+
+/* ============================================================
+   10. GUIDE ONBOARDING SCREEN
+   ============================================================ */
+.guide-onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 305;
+  background: var(--midnight);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem 1.5rem calc(2rem + env(safe-area-inset-bottom));
+  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-spring);
+}
+.guide-onboarding.visible { display: flex; }
+.guide-onboarding.exiting {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+.guide-onboarding-eyebrow {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.guide-onboarding-question {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-bottom: 2rem;
+}
+.onboarding-choice {
+  display: block;
+  width: 100%;
+  background: var(--surface);
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--r-lg);
+  padding: 1rem 1.1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 54px;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.7rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out);
+}
+.onboarding-choice:active {
+  background: var(--off-white);
+  transform: scale(0.99);
+}
+.onboarding-choice.primary {
+  background: var(--teal);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 148, 160, 0.22);
+}
+.onboarding-choice.primary:active { background: var(--teal-dark); }
+.onboarding-choice.muted {
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  border: 0.5px solid rgba(255,255,255,0.18);
+  font-weight: 500;
+}
+.onboarding-choice.muted:active { background: rgba(255,255,255,0.06); }
+
+/* ============================================================
+   11. ROOM HELP — top-bar button + sheet
+   Mirrors the timer sheet pattern.
+   ============================================================ */
+.topbar-help {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-right: 0.4rem;
+  transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-spring);
+}
+.topbar-help:active {
+  background: rgba(255,255,255,0.18);
+  transform: scale(0.96);
+}
+.topbar-help svg { width: 13px; height: 13px; }
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  background: rgba(13, 27, 39, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease-out);
+}
+.help-overlay.open { opacity: 1; pointer-events: auto; }
+.help-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 230;
+  background: var(--surface);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 0.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+  max-height: 82vh;
+  transform: translateY(100%);
+  transition: transform 0.3s var(--ease-spring);
+  box-shadow: 0 -8px 32px rgba(13, 27, 39, 0.18);
+  display: flex;
+  flex-direction: column;
+}
+.help-sheet.open { transform: translateY(0); }
+.help-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--text-quaternary);
+  border-radius: 2px;
+  margin: 0.45rem auto 0.9rem;
+  flex-shrink: 0;
+}
+.help-sheet h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+  flex-shrink: 0;
+}
+.help-sheet-sub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  letter-spacing: -0.005em;
+  flex-shrink: 0;
+}
+.help-sheet-list {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding-right: 0.1rem;
+}
+.help-item { margin-bottom: 1.1rem; }
+.help-item-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.help-item .say-box { margin: 0; }
+
 </style>
 </head>
 <body>
 
-<!-- TITLE SCREEN -->
-<div class="title-screen" id="titleScreen">
+<!-- ============================================================
+     LAYER 1 — LANDING SCREEN
+     ============================================================ -->
+<div class="title-screen" id="landingScreen">
   <div class="title-glow"></div>
-  <div class="title-labs">The Upskilling Labs · Open Cycle · Phase 2</div>
-  <div class="title-name">Pod Sprint</div>
-  <button class="title-continue" onclick="showWelcome()">
-    Poderator run mode
+  <div class="title-labs">The Upskilling Labs · OLOS Prototype</div>
+  <div class="title-name">Pod Moderator Hub</div>
+  <div class="landing-subtitle">Your home base for keeping pods clear, organized, and moving toward testable work.</div>
+  <button class="title-continue" onclick="enterDashboard()" aria-label="Enter the Pod Moderator Hub">
+    Enter
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" style="margin-left: 0.5rem; vertical-align: -2px;">
       <path d="M5 3 L10 8 L5 13" stroke="currentColor"/>
     </svg>
   </button>
-  <div class="title-credit">Created by <span>Levy Strategic Design</span></div>
+  <div class="landing-footer">Prototype for the Pod Moderator Hub in OLOS.</div>
 </div>
 
-<!-- WELCOME SCREEN -->
-<div class="welcome" id="welcomeScreen">
+<!-- ============================================================
+     LAYER 2 — DASHBOARD (OLOS PROTOTYPE)
+     ============================================================ -->
+<div class="dashboard" id="dashboardScreen" aria-hidden="true">
+  <div class="dashboard-topbar">
+    <span class="dashboard-topbrand">Pod Moderator Hub</span>
+    <span class="dashboard-proto-tag">OLOS Prototype</span>
+  </div>
+  <div class="dashboard-scroll" id="dashboardScroll">
+    <div class="dashboard-eyebrow">Dashboard</div>
+    <h1 class="dashboard-title">Welcome to the Pod Moderator Hub</h1>
+    <p class="dashboard-intro">This prototype models the future OLOS home base for Pod Moderators: the volunteers responsible for helping pods stay on track, make decisions, and keep moving through the Open Cycle. For now, use it to prepare for upcoming programming and open the Pod Sprint Facilitation Guide.</p>
+
+    <div id="dashboardSections"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LAYER 3a — GUIDE WELCOME
+     ============================================================ -->
+<div class="welcome" id="guideWelcomeScreen" aria-hidden="true">
+  <button class="welcome-back" onclick="backToDashboard()" aria-label="Back to dashboard">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+      <path d="M10 3 L5 8 L10 13"/>
+    </svg>
+    Dashboard
+  </button>
   <div class="welcome-scroll">
-    <div class="welcome-greeting">Good morning, Poderator.</div>
-    <div class="welcome-subtitle">Here's what you need to carry into today.</div>
+    <div class="welcome-eyebrow">Pod Sprint &amp; Hackathon</div>
+    <div class="welcome-greeting">Pod Sprint Facilitation Guide</div>
+    <div class="welcome-subtitle">A step-by-step guide for helping pods move from problem understanding to something small enough to test.</div>
 
     <div class="welcome-body">
-      <p>Today your Pod moves from studying a problem to <em>testing ideas about it</em>. By 4:30, every person will have a prototype and a plan to put it in front of a real user.</p>
-
-      <p>Your job is to <strong>keep time</strong>, <strong>hold the structure</strong>, and <strong>protect the room</strong>. You are not here to have the best ideas. You are here to make sure everyone else has the space to have theirs.</p>
+      <p>Your job is to <strong>keep time</strong>, <strong>hold the structure</strong>, and <strong>protect the room</strong>. You are not here to solve the work for the pod. You are here to help the pod keep working.</p>
 
       <p>The timer is your primary tool — it lives in the center of your screen all day. The script for every block is one tap away. When you need to say something to the group, the exact words are here.</p>
     </div>
 
     <div class="welcome-divider"></div>
-    <div class="welcome-carry-label">Carry these with you today</div>
+    <div class="welcome-carry-label">Carry these with you</div>
 
     <div class="welcome-carry-item">
       <strong>Most experiments will not become projects.</strong>
@@ -1287,15 +1754,50 @@ button { font-family: inherit; touch-action: manipulation; }
   </div>
 
   <div class="welcome-bottom">
-    <button class="welcome-begin" onclick="dismissWelcome()">Begin — 9:00 · Breakfast</button>
-    <div class="welcome-note">12 blocks · 9:00 AM – 4:30 PM + drinks after</div>
+    <div class="welcome-actions">
+      <button class="welcome-begin" onclick="startSetup()" style="margin-bottom:0;">Start Setup</button>
+      <button class="welcome-skip" onclick="enterGuide({ tour: false })">Skip</button>
+    </div>
+    <div class="welcome-note" style="margin-top:0.6rem;">12 blocks · 9:00 AM – 4:30 PM + drinks after</div>
   </div>
 </div>
 
-<div class="app">
+<!-- ============================================================
+     LAYER 3b — GUIDE ONBOARDING (I'm new / done before / Skip)
+     ============================================================ -->
+<div class="guide-onboarding" id="guideOnboardingScreen" aria-hidden="true">
+  <div class="guide-onboarding-eyebrow">Setup</div>
+  <h2 class="guide-onboarding-question">Have you facilitated a Pod Sprint before?</h2>
+  <button class="onboarding-choice primary" onclick="enterGuide({ tour: true })">
+    I'm new
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+      <path d="M5 3 L10 8 L5 13"/>
+    </svg>
+  </button>
+  <button class="onboarding-choice" onclick="enterGuide({ tour: false })">
+    I've done this before
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+      <path d="M5 3 L10 8 L5 13"/>
+    </svg>
+  </button>
+  <button class="onboarding-choice muted" onclick="enterGuide({ tour: false })">Skip</button>
+</div>
+
+<!-- ============================================================
+     LAYER 3c — POD SPRINT FACILITATION GUIDE (main app)
+     ============================================================ -->
+<div class="app" id="guideApp" style="display: none;" aria-hidden="true">
   <div class="topbar">
-    <span class="topbar-brand">Pod Sprint</span>
+    <span class="topbar-brand">Pod Sprint Guide</span>
     <span class="topbar-counter" id="counter"></span>
+    <button class="topbar-help" onclick="openRoomHelp()" aria-label="Open Room Help">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7">
+        <circle cx="8" cy="8" r="6.5"/>
+        <path d="M6.4 6.2 a1.7 1.7 0 1 1 2.7 1.5 c-0.6 0.4 -1.1 0.7 -1.1 1.6"/>
+        <circle cx="8" cy="11.6" r="0.55" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>Room Help</span>
+    </button>
     <button class="topbar-toggle" id="listToggle" onclick="toggleList()">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6">
         <line x1="2" y1="4" x2="14" y2="4"/>
@@ -1406,10 +1908,74 @@ button { font-family: inherit; touch-action: manipulation; }
     </div>
   </div>
 
+  <!-- ROOM HELP -->
+  <div class="help-overlay" id="helpOverlay" onclick="closeRoomHelp()"></div>
+  <div class="help-sheet" id="helpSheet" role="dialog" aria-label="Room Help">
+    <div class="help-sheet-handle"></div>
+    <h3>Room Help</h3>
+    <div class="help-sheet-sub">Exact words to use when the room gets stuck. Pause, then say one.</div>
+    <div class="help-sheet-list" id="helpSheetList"></div>
+  </div>
+
 </div>
 
 <script>
-const blocks = [
+/* ============================================================
+   POD MODERATOR HUB — SCRIPT TABLE OF CONTENTS
+   1. Dashboard data constants
+      CURRENT_CYCLE, MY_PODS_PLACEHOLDER, UPCOMING_PROGRAMMING,
+      MODERATOR_MATERIALS, ROOM_HELP
+   2. Pod Sprint agenda data (POD_SPRINT_BLOCKS)
+   3. Guide render + navigation (render, go, jumpTo)
+   4. Block list, ticker, swipe
+   5. Timer (state, display, presets, controls, drag-to-dismiss)
+   6. Explainer drawer toggle
+   7. Tour (steps, render, next/close)
+   8. Room Help (render, open/close)
+   9. Screen routing (showScreen, enterDashboard, openGuideWelcome,
+      backToDashboard, startSetup, enterGuide)
+  10. Boot
+   ============================================================ */
+
+// ===== 1. DASHBOARD DATA =====
+const CURRENT_CYCLE = {
+  name: 'Energy & Climate',
+  status: 'Coming soon in OLOS',
+  description: 'This cycle focuses on practical problems at the intersection of energy, climate, work, and community life.',
+};
+
+const MY_PODS_PLACEHOLDER = {
+  status: 'Coming soon in OLOS',
+  description: 'In OLOS, this area will show the pods you are responsible for, their current status, next meeting, open decisions, and next steps.',
+};
+
+const UPCOMING_PROGRAMMING = [
+  {
+    title: 'Pod Sprint & Hackathon',
+    description: 'A one-day working session where pods move from problem understanding to early prototypes, tests, and project directions.',
+    cta: { label: 'Open Facilitation Guide', action: 'openGuide' },
+  },
+];
+
+const MODERATOR_MATERIALS = [
+  { title: 'Scripts',          status: 'Coming soon in OLOS' },
+  { title: 'Agendas',          status: 'Coming soon in OLOS' },
+  { title: 'Checklists',       status: 'Coming soon in OLOS' },
+  { title: 'Templates',        status: 'Coming soon in OLOS' },
+  { title: 'Escalation Notes', status: 'Coming soon in OLOS' },
+];
+
+const ROOM_HELP = [
+  { situation: 'Nobody is talking',                  say: "I’m going to pause us so we can hear from people who have not spoken yet." },
+  { situation: 'One person is dominating',           say: "I’m going to pause us so we can hear from people who have not spoken yet." },
+  { situation: 'The group is debating abstractions', say: "What is the smallest version of this we could test with a real person?" },
+  { situation: 'The group wants to solve too early', say: "Let’s separate the problem from the first solution we like." },
+  { situation: 'The group is confused',              say: "Good. That means we have found the actual work. Let’s name what is unclear." },
+  { situation: 'The group is behind schedule',       say: "We are going to protect the outcome, not the perfect version of the process." },
+];
+
+// ===== 2. POD SPRINT AGENDA =====
+const POD_SPRINT_BLOCKS = [
   {
     time: "9:00–9:30", mode: "Community", modeClass: "", durationMin: 30,
     title: "Breakfast, coffee, and introductions",
@@ -1542,8 +2108,8 @@ let listOpen = false;
 
 // ===== RENDER =====
 function render() {
-  const b = blocks[current];
-  const total = blocks.length;
+  const b = POD_SPRINT_BLOCKS[current];
+  const total = POD_SPRINT_BLOCKS.length;
 
   document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
   document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
@@ -1606,15 +2172,15 @@ function render() {
   btnBack.disabled = current === 0;
 
   if (current < total - 1) {
-    const next = blocks[current + 1];
+    const next = POD_SPRINT_BLOCKS[current + 1];
     tickerTitle.textContent = next.title;
     ticker.classList.remove('done');
     btnNext.disabled = false;
     btnNext.classList.remove('disabled');
     btnNext.onclick = function() { go(1); };
 
-    // Build scrolling cascade: remaining blocks → end-of-day state
-    const remaining = blocks.slice(current + 2);
+    // Build scrolling cascade: remaining POD_SPRINT_BLOCKS → end-of-day state
+    const remaining = POD_SPRINT_BLOCKS.slice(current + 2);
     let tape = '';
     for (const rb of remaining) {
       tape += '<span class="sep">→</span><span>' + rb.title + '</span>';
@@ -1656,12 +2222,12 @@ function render() {
 
 function go(dir) {
   const next = current + dir;
-  if (next < 0 || next >= blocks.length) return;
+  if (next < 0 || next >= POD_SPRINT_BLOCKS.length) return;
   current = next;
   if (listOpen) toggleList();
   // Smart timer: auto-load block duration if timer is not running
   if (!timerRunning) {
-    const dur = blocks[current].durationMin;
+    const dur = POD_SPRINT_BLOCKS[current].durationMin;
     if (dur) {
       timerSeconds = dur * 60;
       timerOriginal = timerSeconds;
@@ -1692,7 +2258,7 @@ function toggleList() {
 
 function renderList() {
   let html = '';
-  blocks.forEach((b, i) => {
+  POD_SPRINT_BLOCKS.forEach((b, i) => {
     html += '<div class="block-list-item' + (i === current ? ' current' : '') + '" onclick="jumpTo(' + i + ')">';
     html += '<span class="bl-time">' + b.time + '</span>';
     html += '<span class="bl-title">' + b.title + '</span>';
@@ -1706,7 +2272,7 @@ function jumpTo(i) {
   current = i;
   if (listOpen) toggleList();
   if (!timerRunning) {
-    const dur = blocks[current].durationMin;
+    const dur = POD_SPRINT_BLOCKS[current].durationMin;
     if (dur) {
       timerSeconds = dur * 60;
       timerOriginal = timerSeconds;
@@ -1883,6 +2449,9 @@ document.addEventListener('touchstart', e => {
 document.addEventListener('touchend', e => {
   if (listOpen) return;
   if (document.getElementById('timerSheet').classList.contains('open')) return;
+  if (document.getElementById('helpSheet').classList.contains('open')) return;
+  // Only handle swipes when the guide is the active view.
+  if (document.getElementById('guideApp').style.display === 'none') return;
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
   if (Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 1.5) {
@@ -2005,29 +2574,213 @@ function closeTour() {
   document.getElementById('tourOverlay').classList.remove('visible');
 }
 
-function showWelcome() {
-  const t = document.getElementById('titleScreen');
-  t.classList.add('exiting');
+// ===== 8. ROOM HELP =====
+function renderRoomHelp() {
+  let html = '';
+  for (const r of ROOM_HELP) {
+    html += '<div class="help-item">';
+    html += '<div class="help-item-label">' + r.situation + '</div>';
+    html += '<div class="say-box"><div class="say-label">SAY</div><div class="say-text">' + r.say + '</div></div>';
+    html += '</div>';
+  }
+  document.getElementById('helpSheetList').innerHTML = html;
+}
+
+function openRoomHelp() {
+  document.getElementById('helpSheet').classList.add('open');
+  document.getElementById('helpOverlay').classList.add('open');
+  if (navigator.vibrate) navigator.vibrate(8);
+}
+
+function closeRoomHelp() {
+  document.getElementById('helpSheet').classList.remove('open');
+  document.getElementById('helpOverlay').classList.remove('open');
+}
+
+// Drag-to-dismiss on Room Help sheet
+(function setupHelpSheetDrag() {
+  const sheet = document.getElementById('helpSheet');
+  let dragStartY = 0, dragCurrentY = 0, dragging = false;
+
+  sheet.addEventListener('touchstart', e => {
+    const r = sheet.getBoundingClientRect();
+    const localY = e.touches[0].clientY - r.top;
+    if (localY > 60 && e.target !== sheet && !e.target.classList.contains('help-sheet-handle')) return;
+    dragStartY = e.touches[0].clientY;
+    dragging = true;
+    sheet.style.transition = 'none';
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    dragCurrentY = e.touches[0].clientY - dragStartY;
+    if (dragCurrentY > 0) {
+      sheet.style.transform = `translateY(${dragCurrentY}px)`;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = '';
+    if (dragCurrentY > 100) closeRoomHelp();
+    else sheet.style.transform = '';
+    dragCurrentY = 0;
+  }, { passive: true });
+})();
+
+// ===== 9. SCREEN ROUTING =====
+function fadeOut(el, after) {
+  el.classList.add('exiting');
   setTimeout(() => {
-    t.style.display = 'none';
-    document.getElementById('welcomeScreen').classList.add('visible');
+    el.style.display = 'none';
+    el.classList.remove('exiting');
+    if (after) after();
   }, 400);
 }
 
-function dismissWelcome() {
-  const w = document.getElementById('welcomeScreen');
-  w.classList.add('exiting');
+function showFixedScreen(id) {
+  const el = document.getElementById(id);
+  el.style.display = '';
+  // Force reflow so the transition kicks in on .visible toggle if used
+  void el.offsetWidth;
+  el.classList.add('visible');
+  el.setAttribute('aria-hidden', 'false');
+}
+
+function hideFixedScreen(id, after) {
+  const el = document.getElementById(id);
+  el.classList.add('exiting');
   setTimeout(() => {
-    w.style.display = 'none';
-    startTour();
+    el.classList.remove('visible', 'exiting');
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
+    if (after) after();
   }, 400);
 }
 
-// Init — auto-set timer to first block's duration
-timerSeconds = blocks[0].durationMin * 60;
-timerOriginal = timerSeconds;
-render();
-updateTimerDisplay();
+function enterDashboard() {
+  renderDashboard();
+  const landing = document.getElementById('landingScreen');
+  landing.classList.add('exiting');
+  setTimeout(() => {
+    landing.style.display = 'none';
+    showFixedScreen('dashboardScreen');
+  }, 400);
+}
+
+function openGuideWelcome() {
+  hideFixedScreen('dashboardScreen', () => {
+    showFixedScreen('guideWelcomeScreen');
+    document.getElementById('guideWelcomeScreen').querySelector('.welcome-scroll').scrollTop = 0;
+  });
+}
+
+function backToDashboard() {
+  hideFixedScreen('guideWelcomeScreen', () => {
+    showFixedScreen('dashboardScreen');
+  });
+}
+
+function startSetup() {
+  hideFixedScreen('guideWelcomeScreen', () => {
+    showFixedScreen('guideOnboardingScreen');
+  });
+}
+
+function enterGuide(opts) {
+  const tour = !!(opts && opts.tour);
+  // Hide whichever guide-entry screen is currently visible.
+  const welcomeEl = document.getElementById('guideWelcomeScreen');
+  const onboardingEl = document.getElementById('guideOnboardingScreen');
+  const activeId = welcomeEl.classList.contains('visible')
+    ? 'guideWelcomeScreen'
+    : (onboardingEl.classList.contains('visible') ? 'guideOnboardingScreen' : null);
+
+  const reveal = () => {
+    const app = document.getElementById('guideApp');
+    app.style.display = '';
+    app.setAttribute('aria-hidden', 'false');
+    // Ensure first-block timer is set
+    if (!timerRunning) {
+      timerSeconds = POD_SPRINT_BLOCKS[current].durationMin * 60;
+      timerOriginal = timerSeconds;
+    }
+    render();
+    updateTimerDisplay();
+    if (tour) {
+      // Tour requires the app to be laid out
+      requestAnimationFrame(() => requestAnimationFrame(startTour));
+    }
+  };
+
+  if (activeId) hideFixedScreen(activeId, reveal);
+  else reveal();
+}
+
+// ===== Dashboard renderer =====
+function renderDashboard() {
+  const root = document.getElementById('dashboardSections');
+  let html = '';
+
+  // Current Cycle
+  html += '<div class="dashboard-section">';
+  html += '<div class="dashboard-section-label">Current Cycle</div>';
+  html += '<div class="dash-card">';
+  html += '<div class="dash-card-header">';
+  html += '<div class="dash-card-title">' + CURRENT_CYCLE.name + '</div>';
+  html += '<span class="dash-badge">' + CURRENT_CYCLE.status + '</span>';
+  html += '</div>';
+  html += '<div class="dash-card-desc">' + CURRENT_CYCLE.description + '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // My Pods
+  html += '<div class="dashboard-section">';
+  html += '<div class="dashboard-section-label">My Pods</div>';
+  html += '<div class="dash-card">';
+  html += '<div class="dash-card-header">';
+  html += '<div class="dash-card-title">My Pods</div>';
+  html += '<span class="dash-badge">' + MY_PODS_PLACEHOLDER.status + '</span>';
+  html += '</div>';
+  html += '<div class="dash-card-desc">' + MY_PODS_PLACEHOLDER.description + '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Upcoming Programming
+  html += '<div class="dashboard-section">';
+  html += '<div class="dashboard-section-label">Upcoming Programming</div>';
+  for (const item of UPCOMING_PROGRAMMING) {
+    html += '<div class="dash-card active">';
+    html += '<div class="dash-card-header">';
+    html += '<div class="dash-card-title">' + item.title + '</div>';
+    html += '</div>';
+    html += '<div class="dash-card-desc">' + item.description + '</div>';
+    if (item.cta && item.cta.action === 'openGuide') {
+      html += '<button class="dash-cta" onclick="openGuideWelcome()">' + item.cta.label + '</button>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Moderator Materials
+  html += '<div class="dashboard-section">';
+  html += '<div class="dashboard-section-label">Moderator Materials</div>';
+  for (const m of MODERATOR_MATERIALS) {
+    html += '<div class="dash-material">';
+    html += '<span class="dash-material-title">' + m.title + '</span>';
+    html += '<span class="dash-badge">' + m.status + '</span>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  root.innerHTML = html;
+}
+
+// ===== 10. BOOT =====
+// Pre-render Room Help once; app shell stays hidden until the user
+// enters the guide via the dashboard. Landing screen is the default view.
+renderRoomHelp();
 </script>
 
 </body>
