@@ -1513,6 +1513,20 @@ button { font-family: inherit; touch-action: manipulation; }
 .dash-event-link .dash-event-arrow {
   font-weight: 700;
 }
+.dash-card.has-image {
+  padding-top: 0;
+  overflow: hidden;
+}
+.dash-card-image-link { display: block; }
+.dash-card-image {
+  display: block;
+  width: calc(100% + 2.2rem);
+  margin: 0 -1.1rem 0.9rem;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  background: var(--cloud);
+  border: 0;
+}
 
 /* ============================================================
    9. GUIDE WELCOME SCREEN — Layer 3 entry
@@ -2782,6 +2796,14 @@ function enterGuide(opts) {
 }
 
 // ===== Dashboard renderer =====
+// Resolve a public event link's og:image dynamically via Microlink's
+// free image proxy. The browser hits api.microlink.io which fetches
+// and parses the page server-side, then 302-redirects to the actual
+// image bytes. No API key. Falls back gracefully via <img onerror>.
+function eventImageUrl(eventLink) {
+  return 'https://api.microlink.io/?url=' + encodeURIComponent(eventLink) + '&embed=image.url';
+}
+
 function renderDashboard() {
   const root = document.getElementById('dashboardSections');
   let html = '';
@@ -2806,15 +2828,24 @@ function renderDashboard() {
   html += '<div class="dashboard-section">';
   html += '<div class="dashboard-section-label">Upcoming Programming</div>';
   for (const item of UPCOMING_PROGRAMMING) {
-    html += '<div class="dash-card active">';
+    const hasImage = !!item.eventLink;
+    html += '<div class="dash-card active' + (hasImage ? ' has-image' : '') + '">';
+    if (hasImage) {
+      const src = eventImageUrl(item.eventLink);
+      const alt = item.title + ' event cover';
+      html += '<a class="dash-card-image-link" href="' + item.eventLink + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + item.title + ' event page">';
+      html += '<img class="dash-card-image" src="' + src + '" alt="' + alt + '" loading="lazy" decoding="async" onerror="this.parentElement.style.display=\'none\'">';
+      html += '</a>';
+    }
     html += '<div class="dash-card-header">';
     html += '<div class="dash-card-title">' + item.title + '</div>';
     html += '</div>';
     html += '<div class="dash-card-desc">' + item.description + '</div>';
     if (item.eventLink) {
+      const host = (() => { try { const u = new URL(item.eventLink); return u.host + u.pathname.replace(/\/$/, ''); } catch (e) { return item.eventLink; } })();
       html += '<a class="dash-event-link" href="' + item.eventLink + '" target="_blank" rel="noopener noreferrer">';
       html += '<span>Event link</span>';
-      html += '<span class="dash-event-host">luma.com/c02-podsprint</span>';
+      html += '<span class="dash-event-host">' + host + '</span>';
       html += '<span class="dash-event-arrow">↗</span>';
       html += '</a>';
     }
