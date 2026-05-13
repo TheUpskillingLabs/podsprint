@@ -1961,7 +1961,7 @@ button { font-family: inherit; touch-action: manipulation; }
     <div class="timer-sub" id="timerSub">Set time, then tap Start</div>
     <div class="timer-presets">
       <button class="timer-preset" onclick="setPreset(2)">2 min</button>
-      <button class="timer-preset selected" onclick="setPreset(3)">3 min</button>
+      <button class="timer-preset" onclick="setPreset(3)">3 min</button>
       <button class="timer-preset" onclick="setPreset(5)">5 min</button>
       <button class="timer-preset" onclick="setPreset(8)">8 min</button>
       <button class="timer-preset" onclick="setPreset(10)">10 min</button>
@@ -2382,6 +2382,14 @@ function formatTime(s) {
   return m + ':' + (sec < 10 ? '0' : '') + sec;
 }
 
+function syncTimerPresetHighlight() {
+  const mins = Math.round(timerOriginal / 60);
+  document.querySelectorAll('.timer-preset').forEach(btn => {
+    const btnMins = parseInt(btn.textContent, 10);
+    btn.classList.toggle('selected', btnMins === mins);
+  });
+}
+
 function updateTimerDisplay() {
   const big = document.getElementById('timerBig');
   const barCountdown = document.getElementById('barTimerCountdown');
@@ -2394,6 +2402,7 @@ function updateTimerDisplay() {
   barIdleTime.textContent = formatted;
   big.classList.toggle('urgent', timerSeconds <= 30 && timerRunning);
   barTimerBtn.classList.toggle('urgent', timerSeconds <= 30 && timerRunning);
+  syncTimerPresetHighlight();
   if (!timerRunning) {
     sub.textContent = timerSeconds === timerOriginal ? 'Set time, then tap Start' : 'Paused';
   } else {
