@@ -1510,7 +1510,7 @@ button { font-family: inherit; touch-action: manipulation; }
 
 /* AGENDA — two-track schedule (for the opening slide) */
 .slideshow-agenda {
-  max-width: 980px;
+  max-width: 1020px;
   width: 100%;
   margin: 1.1rem auto 0;
   text-align: left;
@@ -1518,43 +1518,71 @@ button { font-family: inherit; touch-action: manipulation; }
 .slideshow-agenda-header,
 .slideshow-agenda-row {
   display: grid;
-  grid-template-columns: 80px 1fr 1fr;
-  gap: 1rem;
-  align-items: start;
+  grid-template-columns: 76px 1fr 1fr;
+  gap: 0.7rem;
+  align-items: stretch;
 }
 .slideshow-agenda-header {
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.16);
-  font-size: clamp(0.58rem, 0.85vw, 0.72rem);
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  font-size: clamp(0.6rem, 0.85vw, 0.74rem);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  font-weight: 700;
-  color: rgba(255,255,255,0.5);
-  margin-bottom: 0.4rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 0.55rem;
+}
+.slideshow-agenda-header .track-pod,
+.slideshow-agenda-header .track-newcomer {
+  padding: 0.2rem 0.6rem 0.2rem 0.75rem;
+  border-left: 3px solid;
+  border-radius: 0 var(--r-xs) var(--r-xs) 0;
+  display: flex;
+  align-items: center;
+}
+.slideshow-agenda-header .track-pod {
+  color: #5dd9e2;
+  border-left-color: #5dd9e2;
+  background: rgba(0,148,160,0.12);
 }
 .slideshow-agenda-header .track-newcomer {
   color: #ffc370;
+  border-left-color: #ffc370;
+  background: rgba(201,122,0,0.14);
 }
 .slideshow-agenda-row {
-  padding: 0.45rem 0;
-  border-bottom: 0.5px solid rgba(255,255,255,0.07);
-  font-size: clamp(0.78rem, 1.15vw, 1rem);
+  padding: 0.4rem 0;
+  font-size: clamp(0.8rem, 1.15vw, 1rem);
   line-height: 1.35;
 }
-.slideshow-agenda-row:last-child { border-bottom: none; }
 .slideshow-agenda-time {
   font-weight: 700;
-  color: var(--teal);
+  color: rgba(255,255,255,0.92);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.005em;
+  padding-top: 0.45rem;
 }
 .slideshow-agenda-cell {
-  color: rgba(255,255,255,0.88);
   font-weight: 400;
+  padding: 0.45rem 0.7rem 0.45rem 0.75rem;
+  border-left: 3px solid;
+  border-radius: 0 var(--r-xs) var(--r-xs) 0;
+}
+.slideshow-agenda-cell.left-cell {
+  color: rgba(255,255,255,0.92);
+  background: rgba(0,148,160,0.08);
+  border-left-color: rgba(0,148,160,0.55);
+}
+.slideshow-agenda-cell.right-cell {
+  color: rgba(255,255,255,0.92);
+  background: rgba(201,122,0,0.08);
+  border-left-color: rgba(201,122,0,0.55);
 }
 .slideshow-agenda-cell.faded {
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.32);
   font-style: italic;
+  background: rgba(255,255,255,0.025);
+  border-left-color: rgba(255,255,255,0.12);
 }
 .slideshow-agenda-cell .agenda-title {
   display: block;
@@ -1564,60 +1592,81 @@ button { font-family: inherit; touch-action: manipulation; }
 .slideshow-agenda-cell .agenda-who {
   display: block;
   font-size: 0.85em;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.55);
   margin-top: 0.15rem;
   font-weight: 400;
   letter-spacing: -0.005em;
   line-height: 1.4;
 }
 .slideshow-agenda-row.merge {
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 76px 1fr;
+  margin: 0.25rem 0;
 }
 .slideshow-agenda-row.merge .slideshow-agenda-cell {
   font-weight: 600;
+  text-align: center;
   color: rgba(255,255,255,0.95);
-  background: rgba(255,255,255,0.05);
-  padding: 0.4rem 0.7rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-left: 1px solid rgba(255,255,255,0.14);
   border-radius: var(--r-sm);
-  border-left: 2px solid rgba(0,148,160,0.55);
+  padding: 0.5rem 0.85rem;
+  position: relative;
+}
+.slideshow-agenda-row.merge .slideshow-agenda-cell::before {
+  content: '◆ all together · ';
+  font-size: 0.75em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.5);
+  margin-right: 0.4rem;
+  text-transform: uppercase;
 }
 
-/* On narrow screens, collapse to stacked rows */
+/* On narrow screens, collapse to stacked rows with track labels */
 @media (max-width: 700px) {
   .slideshow-agenda-header { display: none; }
   .slideshow-agenda-row {
     grid-template-columns: 60px 1fr;
-    gap: 0.6rem;
-    padding: 0.55rem 0;
+    gap: 0.55rem;
+    padding: 0.45rem 0;
+    row-gap: 0.4rem;
+  }
+  .slideshow-agenda-time { padding-top: 0.3rem; }
+  .slideshow-agenda-cell {
+    padding: 0.4rem 0.55rem 0.4rem 0.6rem;
   }
   .slideshow-agenda-cell.right-cell {
     grid-column: 2;
-    padding-top: 0.35rem;
-    position: relative;
-    padding-left: 0.55rem;
-    border-left: 2px solid rgba(201,122,0,0.4);
   }
+  .slideshow-agenda-cell.left-cell::before,
   .slideshow-agenda-cell.right-cell::before {
-    content: 'NEWCOMERS · ';
-    font-size: 0.55rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #ffc370;
     display: block;
-    margin-bottom: 0.1rem;
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.18rem;
+    text-transform: uppercase;
   }
   .slideshow-agenda-cell.left-cell::before {
-    content: 'POD SPRINT · ';
-    font-size: 0.55rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
+    content: 'Pod Sprint';
     color: #5dd9e2;
-    display: block;
-    margin-bottom: 0.1rem;
+  }
+  .slideshow-agenda-cell.right-cell::before {
+    content: 'Newcomers · downstairs';
+    color: #ffc370;
   }
   .slideshow-agenda-cell.faded { display: none; }
   .slideshow-agenda-row.merge {
     grid-template-columns: 60px 1fr;
+  }
+  .slideshow-agenda-row.merge .slideshow-agenda-cell::before {
+    content: '◆ all together';
+    display: block;
+    color: rgba(255,255,255,0.5);
+    margin-right: 0;
+    margin-bottom: 0.15rem;
+    font-size: 0.55rem;
   }
 }
 
@@ -2214,13 +2263,22 @@ const blocks = [
 ];
 
 // ===== SLIDE CONTENT — participant-facing, for breakouts and central display =====
-// One slide per block, parallel to the blocks array. Distinct from the facilitator's
-// say/do/success copy: stripped of meta-direction, sized for projection.
+// Multiple slides can map to the same block via the `block` field. The title and
+// schedule slides both sit on top of the breakfast block (block 0).
 const slides = [
   {
+    block: 0,
     accent: "muted",
-    eyebrow: "Today",
+    eyebrow: "Morning",
     headline: "Good morning, Upskillers.",
+    body: "Coffee, breakfast, and introductions. Find your Pod — and the new faces in the room.",
+    note: "Tracks separate at <strong>9:30</strong>.",
+  },
+  {
+    block: 0,
+    accent: "default",
+    eyebrow: "Schedule",
+    headline: "Two tracks. One sprint.",
     agenda: {
       rows: [
         { time: "9:00", merge: "Breakfast — Ballroom" },
@@ -2249,9 +2307,10 @@ const slides = [
         { time: "4:30", merge: "Depart for Happy Hour · La Plaza, 629 Pennsylvania Ave SE" },
       ],
     },
-    note: "Two tracks today. <strong>Pod Sprint</strong> Upskillers stay in the Ballroom. <strong>Newcomers</strong> head downstairs after breakfast. We come back together at lunch and again at 12:30.",
+    note: "<strong>Pod Sprint</strong> Upskillers stay in the Ballroom all day. <strong>Newcomers</strong> are downstairs for workshops. We come back together at the merge moments above.",
   },
   {
+    block: 1,
     accent: "default",
     eyebrow: "Frame the day",
     headline: "From problem to <em>prototype</em>.",
@@ -2259,6 +2318,7 @@ const slides = [
     note: "By 4:30, every person leaves with a prototype + test plan.",
   },
   {
+    block: 2,
     accent: "default",
     eyebrow: "Diverge",
     headline: "Lightning talks — <em>3 minutes</em> each.",
@@ -2270,6 +2330,7 @@ const slides = [
     ],
   },
   {
+    block: 3,
     accent: "default",
     eyebrow: "Sense-make",
     headline: "Cluster the HMWs.",
@@ -2282,6 +2343,7 @@ const slides = [
     note: "<strong>The problem is [X] because [Y], and this direction addresses it by [Z].</strong>",
   },
   {
+    block: 4,
     accent: "converge",
     eyebrow: "Converge",
     headline: "Score every direction.",
@@ -2289,6 +2351,7 @@ const slides = [
     note: "Archived directions are not failures. Every direction on this wall is real thinking from this Pod.",
   },
   {
+    block: 5,
     accent: "muted",
     eyebrow: "Break",
     headline: "Lunch — and merge the new faces in.",
@@ -2296,6 +2359,7 @@ const slides = [
     note: "Ten-minute heads-up at <strong>12:20</strong>.",
   },
   {
+    block: 6,
     accent: "default",
     eyebrow: "Refocus",
     headline: "Fresh-eyes review.",
@@ -2303,6 +2367,7 @@ const slides = [
     note: "Then each of you: state your direction + one sentence why.",
   },
   {
+    block: 7,
     accent: "amber",
     eyebrow: "Plan",
     headline: "Plan your experiment.",
@@ -2317,6 +2382,7 @@ const slides = [
     note: "If it doesn’t fit on one card, it’s too complicated for this stage.",
   },
   {
+    block: 8,
     accent: "amber",
     eyebrow: "Build",
     headline: "Build something <em>reactive</em>.",
@@ -2328,6 +2394,7 @@ const slides = [
     note: "A pivot is a sign of paying attention, not falling behind.",
   },
   {
+    block: 9,
     accent: "default",
     eyebrow: "Share",
     headline: "Show your work.",
@@ -2335,6 +2402,7 @@ const slides = [
     note: "One clarifying question from the group — not feedback, not advice.",
   },
   {
+    block: 10,
     accent: "muted",
     eyebrow: "Close",
     headline: "We’re done. Help clear the space.",
@@ -2346,6 +2414,7 @@ const slides = [
     ],
   },
   {
+    block: 11,
     accent: "muted",
     eyebrow: "After hours",
     headline: "Drinks in <em>Capitol Hill</em>.",
@@ -2355,6 +2424,7 @@ const slides = [
 ];
 
 let current = 0;
+let currentSlide = 0;
 let listOpen = false;
 let slideshowOpen = false;
 
@@ -2477,6 +2547,9 @@ function go(dir) {
   const next = current + dir;
   if (next < 0 || next >= blocks.length) return;
   current = next;
+  // Snap slideshow index to the first slide of this block
+  const firstSlideIdx = slides.findIndex(s => s.block === current);
+  if (firstSlideIdx !== -1) currentSlide = firstSlideIdx;
   if (listOpen) toggleList();
   // Smart timer: auto-load block duration if timer is not running
   if (!timerRunning) {
@@ -2523,6 +2596,8 @@ function renderList() {
 
 function jumpTo(i) {
   current = i;
+  const firstSlideIdx = slides.findIndex(s => s.block === current);
+  if (firstSlideIdx !== -1) currentSlide = firstSlideIdx;
   if (listOpen) toggleList();
   if (!timerRunning) {
     const dur = blocks[current].durationMin;
@@ -2706,8 +2781,9 @@ document.addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
   if (Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-    if (dx < 0) go(1);
-    else go(-1);
+    const nav = slideshowOpen ? slideGo : go;
+    if (dx < 0) nav(1);
+    else nav(-1);
   }
 }, { passive: true });
 
@@ -2917,7 +2993,28 @@ document.addEventListener('fullscreenchange', () => {
 
 function slideGo(dir) {
   if (!slideshowOpen) return;
-  go(dir);
+  setSlide(currentSlide + dir);
+}
+
+function setSlide(i) {
+  if (i < 0 || i >= slides.length) return;
+  currentSlide = i;
+  const newBlock = slides[currentSlide].block;
+  if (newBlock !== current) {
+    current = newBlock;
+    // Auto-load timer for the new block
+    if (!timerRunning) {
+      const dur = blocks[current].durationMin;
+      if (dur) {
+        timerSeconds = dur * 60;
+        timerOriginal = timerSeconds;
+        updateTimerDisplay();
+        document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('selected'));
+      }
+    }
+  }
+  if (navigator.vibrate) navigator.vibrate(8);
+  render();
 }
 
 function slideTimerTap() {
@@ -2968,9 +3065,14 @@ function renderAgenda(agenda) {
 
 function renderSlide() {
   if (!slideshowOpen) return;
-  const b = blocks[current];
-  const total = blocks.length;
-  const data = slides[current] || { headline: b.title };
+  // Make sure currentSlide is in sync with current (e.g. if run-mode jumped)
+  if (!slides[currentSlide] || slides[currentSlide].block !== current) {
+    const idx = slides.findIndex(s => s.block === current);
+    if (idx !== -1) currentSlide = idx;
+  }
+  const data = slides[currentSlide];
+  const b = blocks[data.block];
+  const totalSlides = slides.length;
   const slideshow = document.getElementById('slideshow');
 
   // Accent (drives color theme)
@@ -2985,7 +3087,7 @@ function renderSlide() {
   document.getElementById('slideTime').textContent =
     b.time + (b.durationMin ? ' · ' + b.durationMin + ' min' : '');
   document.getElementById('slideCounter').textContent =
-    'Block ' + (current + 1) + ' of ' + total;
+    'Slide ' + (currentSlide + 1) + ' of ' + totalSlides;
 
   // Slide body
   let html = '';
@@ -3025,15 +3127,15 @@ function renderSlide() {
 
   // Progress dots
   let dots = '';
-  for (let i = 0; i < total; i++) {
-    const cls = i === current ? 'current' : (i < current ? 'done' : '');
+  for (let i = 0; i < totalSlides; i++) {
+    const cls = i === currentSlide ? 'current' : (i < currentSlide ? 'done' : '');
     dots += '<div class="slideshow-dot ' + cls + '"></div>';
   }
   document.getElementById('slideProgress').innerHTML = dots;
 
   // Nav buttons
-  document.getElementById('slidePrev').disabled = current === 0;
-  document.getElementById('slideNext').disabled = current === total - 1;
+  document.getElementById('slidePrev').disabled = currentSlide === 0;
+  document.getElementById('slideNext').disabled = currentSlide === totalSlides - 1;
 
   updateSlideTimer();
 }
@@ -3062,8 +3164,8 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeSlideshow(); e.preventDefault(); }
   else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { slideGo(1); e.preventDefault(); }
   else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { slideGo(-1); e.preventDefault(); }
-  else if (e.key === 'Home') { jumpTo(0); e.preventDefault(); }
-  else if (e.key === 'End') { jumpTo(blocks.length - 1); e.preventDefault(); }
+  else if (e.key === 'Home') { setSlide(0); e.preventDefault(); }
+  else if (e.key === 'End') { setSlide(slides.length - 1); e.preventDefault(); }
   else if (e.key === 'f' || e.key === 'F') { toggleSlideFullscreen(); e.preventDefault(); }
   else if (e.key === 't' || e.key === 'T') { toggleTimer(); e.preventDefault(); }
 });
