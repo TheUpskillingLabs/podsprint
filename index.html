@@ -1749,15 +1749,48 @@ button { font-family: inherit; touch-action: manipulation; }
   letter-spacing: 0.08em;
   color: rgba(255,255,255,0.32);
   text-transform: uppercase;
-  margin-top: 0.25rem;
   font-family: inherit;
 }
+
+.slideshow-timer-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.slideshow-timer-adjust {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-family: inherit;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.32rem 0.7rem 0.32rem 0.55rem;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-height: 26px;
+  transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out), transform 0.15s var(--ease-spring);
+}
+.slideshow-timer-adjust:active {
+  background: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.96);
+  transform: scale(0.95);
+}
+.slideshow-timer-adjust svg { stroke: currentColor; flex-shrink: 0; }
 
 .slideshow-timer-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0;
   justify-self: center;
 }
 
@@ -1883,6 +1916,8 @@ button { font-family: inherit; touch-action: manipulation; }
   .slideshow-note { margin-top: 1.1rem; font-size: 0.85rem; }
   .slideshow-timer { font-size: 2.6rem; padding: 0.3rem 0.85rem; }
   .slideshow-timer-hint { display: none; }
+  .slideshow-timer-meta { margin-top: 0.2rem; gap: 0.4rem; }
+  .slideshow-timer-adjust { padding: 0.3rem 0.65rem 0.3rem 0.5rem; font-size: 0.58rem; }
   .slideshow-clickzone { width: 18%; }
 }
 
@@ -2115,7 +2150,17 @@ body.slideshow-open .app { visibility: hidden; }
         <span class="slideshow-timer-pulse"></span>
         <span id="slideTimerText">0:00</span>
       </button>
-      <span class="slideshow-timer-hint" id="slideTimerHint">Tap to start</span>
+      <div class="slideshow-timer-meta">
+        <span class="slideshow-timer-hint" id="slideTimerHint">Tap to start</span>
+        <button class="slideshow-timer-adjust" onclick="openTimer()" aria-label="Adjust timer duration">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7">
+            <circle cx="8" cy="9" r="5.5"/>
+            <path d="M8 6.5 V 9 L9.8 10.2"/>
+            <path d="M6 2.5 H10"/>
+          </svg>
+          <span>Adjust</span>
+        </button>
+      </div>
     </div>
     <div class="slideshow-nav">
       <button class="slideshow-nav-btn" id="slidePrev" onclick="slideGo(-1)" aria-label="Previous block">
@@ -2679,6 +2724,15 @@ function toggleTimer() {
     startBtn.textContent = 'Pause';
     startBtn.style.background = 'var(--amber)';
     barTimerBtn.classList.add('running');
+    // When starting from inside the timer sheet while presenting, dismiss
+    // the sheet so the slide is visible again. The slideshow timer keeps
+    // showing the countdown.
+    if (slideshowOpen) {
+      const sheet = document.getElementById('timerSheet');
+      if (sheet && sheet.classList.contains('open')) {
+        setTimeout(closeTimer, 220);
+      }
+    }
     timerInterval = setInterval(() => {
       timerSeconds--;
       updateTimerDisplay();
@@ -3233,6 +3287,7 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'End') { setSlide(slides.length - 1); e.preventDefault(); }
   else if (e.key === 'f' || e.key === 'F') { toggleSlideFullscreen(); e.preventDefault(); }
   else if (e.key === 't' || e.key === 'T') { toggleTimer(); e.preventDefault(); }
+  else if (e.key === 'a' || e.key === 'A') { openTimer(); e.preventDefault(); }
 });
 
 // Init — auto-set timer to first block's duration
