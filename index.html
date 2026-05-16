@@ -1022,7 +1022,7 @@ button { font-family: inherit; touch-action: manipulation; }
   border-radius: var(--r-xl) var(--r-xl) 0 0;
   padding: 0.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
   box-shadow: 0 -2px 8px rgba(0,0,0,0.06), 0 -16px 48px rgba(0,0,0,0.16);
-  z-index: 200;
+  z-index: 380;
   transform: translateY(100%);
   transition: transform 0.42s var(--ease-spring);
 }
@@ -1160,7 +1160,7 @@ button { font-family: inherit; touch-action: manipulation; }
   background: rgba(13, 27, 39, 0.4);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
   backdrop-filter: blur(8px) saturate(140%);
-  z-index: 190;
+  z-index: 370;
   display: none;
   opacity: 0;
   transition: opacity 0.3s var(--ease-out);
@@ -1235,6 +1235,498 @@ button { font-family: inherit; touch-action: manipulation; }
 }
 .bl-chevron svg { stroke: currentColor; }
 
+/* ===== SLIDESHOW (Present Mode) ===== */
+.slideshow {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  background: var(--midnight);
+  display: none;
+  flex-direction: column;
+  color: var(--white);
+  overflow: hidden;
+  user-select: none;
+}
+.slideshow.visible {
+  display: flex;
+  animation: slideshowFade 0.4s var(--ease-out);
+}
+@keyframes slideshowFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.slideshow-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70vmin; height: 70vmin;
+  background: radial-gradient(circle, rgba(0,148,160,0.20) 0%, rgba(0,148,160,0.05) 40%, transparent 70%);
+  pointer-events: none;
+  filter: blur(20px);
+  transition: background 0.6s var(--ease-spring);
+}
+.slideshow[data-accent="converge"] .slideshow-glow {
+  background: radial-gradient(circle, rgba(238,28,37,0.18) 0%, rgba(238,28,37,0.05) 40%, transparent 70%);
+}
+.slideshow[data-accent="amber"] .slideshow-glow {
+  background: radial-gradient(circle, rgba(201,122,0,0.22) 0%, rgba(201,122,0,0.05) 40%, transparent 70%);
+}
+.slideshow[data-accent="muted"] .slideshow-glow {
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 40%, transparent 70%);
+}
+
+/* TOP STRIP */
+.slideshow-top {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(env(safe-area-inset-top), 0.85rem) 1.5rem 0.6rem;
+  position: relative;
+  z-index: 4;
+  gap: 1rem;
+}
+.slideshow-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-height: 36px;
+}
+.slideshow-mode-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.32rem 0.75rem;
+  border-radius: var(--r-pill);
+  background: rgba(0,148,160,0.18);
+  color: #5dd9e2;
+}
+.slideshow-mode-tag.converge { background: rgba(238,28,37,0.20); color: #ff8a90; }
+.slideshow-mode-tag.lunch, .slideshow-mode-tag.muted { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+.slideshow-mode-tag.amber { background: rgba(201,122,0,0.24); color: #ffc370; }
+.slideshow-time {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.78);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.005em;
+}
+.slideshow-counter {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.slideshow-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+.slideshow-ctrl {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: rgba(255,255,255,0.85);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-spring);
+}
+.slideshow-ctrl:active {
+  background: rgba(255,255,255,0.18);
+  transform: scale(0.96);
+}
+.slideshow-ctrl svg { stroke: currentColor; }
+.slideshow-ctrl.exit { background: rgba(238,28,37,0.16); color: #ff8a90; }
+.slideshow-ctrl.exit:active { background: rgba(238,28,37,0.3); }
+
+/* CLICK ZONES — above stage so they receive clicks on left/right edges */
+.slideshow-clickzone {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 22%;
+  z-index: 3;
+  cursor: pointer;
+  background: transparent;
+}
+.slideshow-clickzone.left { left: 0; }
+.slideshow-clickzone.right { right: 0; }
+
+/* STAGE */
+.slideshow-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1.5vh 5vw;
+  position: relative;
+  z-index: 2;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.slideshow-slide {
+  max-width: 1100px;
+  width: 100%;
+  animation: slideIn 0.5s var(--ease-spring);
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.slideshow-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 1.1rem;
+}
+.slideshow[data-accent="converge"] .slideshow-eyebrow { color: #ff8a90; }
+.slideshow[data-accent="amber"] .slideshow-eyebrow { color: #ffc370; }
+.slideshow[data-accent="muted"] .slideshow-eyebrow { color: rgba(255,255,255,0.55); }
+.slideshow-headline {
+  font-size: clamp(2rem, 5.6vw, 4.4rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: var(--white);
+  margin-bottom: 1.5rem;
+}
+.slideshow-headline em {
+  font-style: normal;
+  color: var(--teal);
+}
+.slideshow[data-accent="converge"] .slideshow-headline em { color: #ff8a90; }
+.slideshow[data-accent="amber"] .slideshow-headline em { color: #ffc370; }
+.slideshow[data-accent="muted"] .slideshow-headline em { color: rgba(255,255,255,0.8); }
+.slideshow-body {
+  font-size: clamp(1.05rem, 2vw, 1.55rem);
+  line-height: 1.45;
+  color: rgba(255,255,255,0.84);
+  max-width: 820px;
+  margin: 0 auto 1.4rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.slideshow-body strong {
+  color: var(--white);
+  font-weight: 600;
+}
+.slideshow-body em {
+  font-style: normal;
+  color: var(--teal);
+  font-weight: 500;
+}
+.slideshow[data-accent="converge"] .slideshow-body em { color: #ff8a90; }
+.slideshow[data-accent="amber"] .slideshow-body em { color: #ffc370; }
+.slideshow[data-accent="muted"] .slideshow-body em { color: rgba(255,255,255,0.8); }
+.slideshow-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-width: 760px;
+  margin: 1.2rem auto 0;
+  text-align: left;
+}
+.slideshow-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  font-size: clamp(0.98rem, 1.6vw, 1.25rem);
+  line-height: 1.45;
+  color: rgba(255,255,255,0.88);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+.slideshow-bullet strong { color: var(--white); font-weight: 600; }
+.slideshow-bullet em {
+  font-style: normal;
+  color: var(--teal);
+  font-weight: 500;
+}
+.slideshow[data-accent="converge"] .slideshow-bullet em { color: #ff8a90; }
+.slideshow[data-accent="amber"] .slideshow-bullet em { color: #ffc370; }
+.slideshow-bullet-num {
+  flex-shrink: 0;
+  width: 1.85em;
+  height: 1.85em;
+  border-radius: 50%;
+  background: rgba(0,148,160,0.22);
+  color: #5dd9e2;
+  font-weight: 700;
+  font-size: 0.85em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.slideshow[data-accent="converge"] .slideshow-bullet-num {
+  background: rgba(238,28,37,0.20); color: #ff8a90;
+}
+.slideshow[data-accent="amber"] .slideshow-bullet-num {
+  background: rgba(201,122,0,0.24); color: #ffc370;
+}
+.slideshow-bullet-dot {
+  flex-shrink: 0;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--teal);
+  margin-top: 0.55em;
+}
+.slideshow[data-accent="converge"] .slideshow-bullet-dot { background: #ff8a90; }
+.slideshow[data-accent="amber"] .slideshow-bullet-dot { background: #ffc370; }
+.slideshow[data-accent="muted"] .slideshow-bullet-dot { background: rgba(255,255,255,0.4); }
+.slideshow-note {
+  margin-top: 1.6rem;
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: rgba(255,255,255,0.52);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: -0.005em;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.45;
+}
+.slideshow-note strong, .slideshow-note em {
+  font-style: normal;
+  color: rgba(255,255,255,0.75);
+  font-weight: 500;
+}
+
+/* BOTTOM BAR */
+.slideshow-bottom {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.85rem 1.5rem calc(1rem + env(safe-area-inset-bottom));
+  gap: 1rem;
+  position: relative;
+  z-index: 4;
+}
+.slideshow-progress {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-self: start;
+}
+.slideshow-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.16);
+  transition: background 0.25s var(--ease-out), transform 0.25s var(--ease-spring);
+}
+.slideshow-dot.done { background: rgba(0,148,160,0.5); }
+.slideshow-dot.current {
+  background: var(--teal);
+  transform: scale(1.5);
+}
+.slideshow[data-accent="converge"] .slideshow-dot.current { background: #ff8a90; }
+.slideshow[data-accent="converge"] .slideshow-dot.done { background: rgba(238,28,37,0.4); }
+.slideshow[data-accent="amber"] .slideshow-dot.current { background: #ffc370; }
+.slideshow[data-accent="amber"] .slideshow-dot.done { background: rgba(201,122,0,0.45); }
+
+.slideshow-timer {
+  font-size: clamp(2.2rem, 5.5vw, 4rem);
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.45rem 1.1rem;
+  border-radius: var(--r-md);
+  transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out), transform 0.15s var(--ease-spring);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255,255,255,0.04);
+  border: none;
+  font-family: inherit;
+  justify-self: center;
+}
+.slideshow-timer:active {
+  background: rgba(255,255,255,0.1);
+  transform: scale(0.98);
+}
+.slideshow-timer-pulse {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: var(--teal);
+  display: none;
+  flex-shrink: 0;
+}
+.slideshow-timer.running .slideshow-timer-pulse {
+  display: block;
+  animation: pulse 1.4s var(--ease-in-out) infinite;
+}
+.slideshow-timer.urgent { color: #ff8a90; background: rgba(238,28,37,0.1); }
+.slideshow-timer.urgent .slideshow-timer-pulse {
+  background: #ff6b6b;
+  animation: urgentPulse 0.55s var(--ease-in-out) infinite;
+}
+.slideshow-timer-hint {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.32);
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+  font-family: inherit;
+}
+
+.slideshow-timer-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  justify-self: center;
+}
+
+.slideshow-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.55rem;
+  justify-self: end;
+}
+.slideshow-nav-btn {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: rgba(255,255,255,0.92);
+  border-radius: var(--r-md);
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-spring), opacity 0.2s var(--ease-out);
+}
+.slideshow-nav-btn:active:not(:disabled) {
+  background: rgba(255,255,255,0.16);
+  transform: scale(0.94);
+}
+.slideshow-nav-btn:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.slideshow-nav-btn.primary {
+  background: var(--teal);
+  color: #fff;
+  padding: 0.6rem 1.1rem;
+}
+.slideshow-nav-btn.primary:active:not(:disabled) { background: var(--teal-dark); }
+.slideshow[data-accent="converge"] .slideshow-nav-btn.primary { background: var(--red); }
+.slideshow[data-accent="converge"] .slideshow-nav-btn.primary:active:not(:disabled) { background: var(--red-dark); }
+.slideshow[data-accent="amber"] .slideshow-nav-btn.primary { background: #c97a00; }
+.slideshow[data-accent="amber"] .slideshow-nav-btn.primary:active:not(:disabled) { background: #8a5200; }
+.slideshow-nav-btn svg { stroke: currentColor; }
+
+/* Title-screen present button */
+.title-secondary {
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  border: 0.5px solid rgba(255,255,255,0.18);
+  border-radius: var(--r-lg);
+  padding: 0.75rem 1.5rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.85rem;
+  letter-spacing: -0.005em;
+  min-height: 42px;
+  position: relative;
+  transition: transform 0.15s var(--ease-spring), background 0.2s var(--ease-out), border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+.title-secondary:active {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.85);
+  transform: scale(0.97);
+}
+
+/* Topbar present button */
+.topbar-present {
+  background: rgba(0,148,160,0.18);
+  border: none;
+  color: #5dd9e2;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-right: 0.4rem;
+  transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-spring);
+}
+.topbar-present:active {
+  background: rgba(0,148,160,0.32);
+  transform: scale(0.96);
+}
+.topbar-present svg { stroke: currentColor; width: 13px; height: 13px; flex-shrink: 0; }
+@media (max-width: 420px) {
+  .topbar-present span { display: none; }
+  .topbar-present { padding: 0.4rem 0.55rem; }
+}
+
+/* Mobile portrait adjustments */
+@media (max-width: 640px) {
+  .slideshow-top { padding: max(env(safe-area-inset-top), 0.65rem) 0.9rem 0.4rem; gap: 0.5rem; }
+  .slideshow-meta { gap: 0.45rem; }
+  .slideshow-time { font-size: 0.85rem; }
+  .slideshow-counter { display: none; }
+  .slideshow-ctrl span { display: none; }
+  .slideshow-ctrl { padding: 0.5rem 0.6rem; }
+  .slideshow-stage { padding: 0.5vh 1.1rem; }
+  .slideshow-bottom {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    padding: 0.65rem 1rem calc(0.85rem + env(safe-area-inset-bottom));
+  }
+  .slideshow-progress { justify-self: center; order: 3; }
+  .slideshow-timer-wrap { order: 1; justify-self: center; }
+  .slideshow-nav { justify-self: stretch; order: 2; justify-content: space-between; }
+  .slideshow-headline { font-size: clamp(1.6rem, 7.5vw, 2.4rem); margin-bottom: 1rem; }
+  .slideshow-eyebrow { margin-bottom: 0.7rem; font-size: 0.62rem; }
+  .slideshow-body { font-size: 1rem; margin-bottom: 1rem; }
+  .slideshow-bullets { gap: 0.55rem; margin-top: 0.85rem; }
+  .slideshow-bullet { font-size: 0.95rem; gap: 0.7rem; }
+  .slideshow-note { margin-top: 1.1rem; font-size: 0.85rem; }
+  .slideshow-timer { font-size: 2.6rem; padding: 0.3rem 0.85rem; }
+  .slideshow-timer-hint { display: none; }
+  .slideshow-clickzone { width: 18%; }
+}
+
+/* Hide UI bits when slideshow is showing the underlying app */
+body.slideshow-open .app { visibility: hidden; }
+
 </style>
 </head>
 <body>
@@ -1247,6 +1739,12 @@ button { font-family: inherit; touch-action: manipulation; }
   <button class="title-continue" onclick="showWelcome()">
     Poderator run mode
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" style="margin-left: 0.5rem; vertical-align: -2px;">
+      <path d="M5 3 L10 8 L5 13" stroke="currentColor"/>
+    </svg>
+  </button>
+  <button class="title-secondary" onclick="startInPresentMode()">
+    Present mode — for the room
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" style="margin-left: 0.4rem; vertical-align: -1px;">
       <path d="M5 3 L10 8 L5 13" stroke="currentColor"/>
     </svg>
   </button>
@@ -1296,6 +1794,14 @@ button { font-family: inherit; touch-action: manipulation; }
   <div class="topbar">
     <span class="topbar-brand">Pod Sprint</span>
     <span class="topbar-counter" id="counter"></span>
+    <button class="topbar-present" onclick="openSlideshow()" aria-label="Open present mode">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6">
+        <rect x="1.5" y="3" width="13" height="8.5" rx="1.2"/>
+        <path d="M5 14 H11"/>
+        <path d="M8 11.5 V14"/>
+      </svg>
+      <span>Present</span>
+    </button>
     <button class="topbar-toggle" id="listToggle" onclick="toggleList()">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6">
         <line x1="2" y1="4" x2="14" y2="4"/>
@@ -1406,6 +1912,63 @@ button { font-family: inherit; touch-action: manipulation; }
     </div>
   </div>
 
+</div>
+
+<!-- SLIDESHOW (Present Mode) -->
+<div class="slideshow" id="slideshow" aria-hidden="true">
+  <div class="slideshow-glow"></div>
+  <div class="slideshow-clickzone left" onclick="slideGo(-1)" aria-hidden="true"></div>
+  <div class="slideshow-clickzone right" onclick="slideGo(1)" aria-hidden="true"></div>
+
+  <div class="slideshow-top">
+    <div class="slideshow-meta">
+      <span class="slideshow-mode-tag" id="slideMode"></span>
+      <span class="slideshow-time" id="slideTime"></span>
+      <span class="slideshow-counter" id="slideCounter"></span>
+    </div>
+    <div class="slideshow-controls">
+      <button class="slideshow-ctrl" id="slideFullscreenBtn" onclick="toggleSlideFullscreen()" aria-label="Toggle fullscreen">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6">
+          <path d="M2 5V2H5M14 5V2H11M2 11V14H5M14 11V14H11"/>
+        </svg>
+        <span id="slideFullscreenLabel">Fullscreen</span>
+      </button>
+      <button class="slideshow-ctrl exit" onclick="closeSlideshow()" aria-label="Exit present mode">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+          <path d="M4 4 L12 12 M12 4 L4 12"/>
+        </svg>
+        <span>Exit</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="slideshow-stage">
+    <div class="slideshow-slide" id="slideContent"></div>
+  </div>
+
+  <div class="slideshow-bottom">
+    <div class="slideshow-progress" id="slideProgress"></div>
+    <div class="slideshow-timer-wrap">
+      <button class="slideshow-timer" id="slideTimer" onclick="slideTimerTap()" aria-label="Tap to start, pause, or reset timer">
+        <span class="slideshow-timer-pulse"></span>
+        <span id="slideTimerText">0:00</span>
+      </button>
+      <span class="slideshow-timer-hint" id="slideTimerHint">Tap to start</span>
+    </div>
+    <div class="slideshow-nav">
+      <button class="slideshow-nav-btn" id="slidePrev" onclick="slideGo(-1)" aria-label="Previous block">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+          <path d="M10 3 L5 8 L10 13"/>
+        </svg>
+      </button>
+      <button class="slideshow-nav-btn primary" id="slideNext" onclick="slideGo(1)" aria-label="Next block">
+        <span>Next</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+          <path d="M6 3 L11 8 L6 13"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1537,8 +2100,123 @@ const blocks = [
   },
 ];
 
+// ===== SLIDE CONTENT — participant-facing, for breakouts and central display =====
+// One slide per block, parallel to the blocks array. Distinct from the facilitator's
+// say/do/success copy: stripped of meta-direction, sized for projection.
+const slides = [
+  {
+    accent: "muted",
+    eyebrow: "Morning",
+    headline: "Welcome, Poderators.",
+    body: "Coffee, breakfast, and introductions. Meet your Pod — and the new faces in the room.",
+    note: "Tracks separate at <strong>9:30</strong>.",
+  },
+  {
+    accent: "default",
+    eyebrow: "Frame the day",
+    headline: "From problem to <em>prototype</em>.",
+    body: "In Explore, your Pod validated that this problem exists. Today you hypothesize <em>why</em> it shows up — and how you might intervene.",
+    note: "By 4:30, every person leaves with a prototype + test plan.",
+  },
+  {
+    accent: "default",
+    eyebrow: "Diverge",
+    headline: "Lightning talks — <em>3 minutes</em> each.",
+    body: "Not a summary of Explore. <strong>Your argument for what is really going on.</strong>",
+    bullets: [
+      "While listening, write <em>How might we</em> questions — one per card.",
+      "Format: <em>How might we [verb] [for whom] so that [outcome]?</em>",
+      "No discussion after each talk — your cards are the response.",
+    ],
+  },
+  {
+    accent: "default",
+    eyebrow: "Sense-make",
+    headline: "Cluster the HMWs.",
+    bullets: [
+      "Post every card on the wall — no organizing.",
+      "5 minutes of silent read. No talking, no moving cards.",
+      "Group by <em>shared logic</em> — not surface words.",
+      "Name each direction.",
+    ],
+    note: "<strong>The problem is [X] because [Y], and this direction addresses it by [Z].</strong>",
+  },
+  {
+    accent: "converge",
+    eyebrow: "Converge",
+    headline: "Score every direction.",
+    body: "Your Pod can advance <em>[Pod size ÷ 3]</em> directions. Score silently. Circle <strong>No</strong>, <strong>Maybe</strong>, or <strong>Yes</strong> for each dimension.",
+    note: "Archived directions are not failures. Every direction on this wall is real thinking from this Pod.",
+  },
+  {
+    accent: "muted",
+    eyebrow: "Break",
+    headline: "Lunch — and brief the newcomers.",
+    body: "Sit with your Pod. Walk newcomers through your problem and your surviving directions. They’ll have questions. Answer them.",
+    note: "Ten-minute heads-up at <strong>12:20</strong>.",
+  },
+  {
+    accent: "default",
+    eyebrow: "Refocus",
+    headline: "Fresh-eyes review.",
+    body: "Newcomers weren’t in the room this morning. They’ve read your problem and just heard your directions at lunch. <strong>They’re going to ask you questions. Answer them honestly.</strong>",
+    note: "Then each person: state your direction + one sentence why.",
+  },
+  {
+    accent: "amber",
+    eyebrow: "Plan",
+    headline: "Plan your experiment.",
+    body: "One index card. Four questions.",
+    bullets: [
+      "What exactly am I going to do?",
+      "Who is the first person I will test this with?",
+      "What is the smallest version I can build?",
+      "What do I want to learn from testing it <em>once</em>?",
+    ],
+    numbered: true,
+    note: "If it doesn’t fit on one card, it’s too complicated for this stage.",
+  },
+  {
+    accent: "amber",
+    eyebrow: "Build",
+    headline: "Build something <em>reactive</em>.",
+    body: "Make it small. A real person should be able to react to what you’re building.",
+    bullets: [
+      "<strong>2:30 — Pivot gate.</strong> Can a real person react to it? If no, change the format, not the idea.",
+      "<strong>3:15 — Test plan gate.</strong> Specific person, way to reach them, and a date.",
+    ],
+    note: "A pivot is a sign of paying attention, not falling behind.",
+  },
+  {
+    accent: "default",
+    eyebrow: "Share",
+    headline: "Show your work.",
+    body: "Not a pitch. <strong>Show what you built.</strong> Say who you’re testing with.",
+    note: "One clarifying question from the group — not feedback, not advice.",
+  },
+  {
+    accent: "muted",
+    eyebrow: "Close",
+    headline: "Wrap and clear the space.",
+    bullets: [
+      "Photograph every Pod wall — full shots and close-ups.",
+      "Stack cards by Pod and section. Bag and label.",
+      "Clear tables, trash, furniture.",
+      "<strong>Everyone out by 4:30.</strong>",
+    ],
+  },
+  {
+    accent: "muted",
+    eyebrow: "After hours",
+    headline: "Drinks in <em>Capitol Hill</em>.",
+    body: "Walk together. Be present. Celebrate the day.",
+    note: "This is where the community actually forms.",
+  },
+];
+
 let current = 0;
 let listOpen = false;
+let slideshowOpen = false;
 
 // ===== RENDER =====
 function render() {
@@ -1652,6 +2330,7 @@ function render() {
   }
 
   renderList();
+  renderSlide();
 }
 
 function go(dir) {
@@ -1746,6 +2425,7 @@ function updateTimerDisplay() {
   } else {
     sub.textContent = timerSeconds <= 0 ? '\u23f0 Time\u2019s up!' : 'Running\u2026';
   }
+  updateSlideTimer();
 }
 
 function setPreset(mins) {
@@ -2022,6 +2702,186 @@ function dismissWelcome() {
     startTour();
   }, 400);
 }
+
+// ===== SLIDESHOW (Present Mode) =====
+let slideWakeLock = null;
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try { slideWakeLock = await navigator.wakeLock.request('screen'); } catch (e) { /* ignore */ }
+}
+function releaseWakeLock() {
+  if (slideWakeLock && slideWakeLock.release) {
+    slideWakeLock.release().catch(() => {});
+    slideWakeLock = null;
+  }
+}
+// Re-acquire wake lock if tab returns to foreground while presenting
+document.addEventListener('visibilitychange', () => {
+  if (slideshowOpen && document.visibilityState === 'visible' && !slideWakeLock) {
+    acquireWakeLock();
+  }
+});
+
+function openSlideshow() {
+  slideshowOpen = true;
+  const el = document.getElementById('slideshow');
+  el.classList.add('visible');
+  el.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('slideshow-open');
+  acquireWakeLock();
+  renderSlide();
+}
+
+function closeSlideshow() {
+  slideshowOpen = false;
+  const el = document.getElementById('slideshow');
+  el.classList.remove('visible');
+  el.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('slideshow-open');
+  releaseWakeLock();
+  if (document.fullscreenElement) {
+    (document.exitFullscreen || document.webkitExitFullscreen || function() {}).call(document);
+  }
+}
+
+function startInPresentMode() {
+  const t = document.getElementById('titleScreen');
+  t.classList.add('exiting');
+  setTimeout(() => {
+    t.style.display = 'none';
+    openSlideshow();
+  }, 400);
+}
+
+function toggleSlideFullscreen() {
+  const el = document.getElementById('slideshow');
+  const label = document.getElementById('slideFullscreenLabel');
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      const p = req.call(el);
+      if (p && p.catch) p.catch(() => {});
+    }
+    if (label) label.textContent = 'Exit full';
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+    if (label) label.textContent = 'Fullscreen';
+  }
+}
+
+document.addEventListener('fullscreenchange', () => {
+  const label = document.getElementById('slideFullscreenLabel');
+  if (label) label.textContent = document.fullscreenElement ? 'Exit full' : 'Fullscreen';
+});
+
+function slideGo(dir) {
+  if (!slideshowOpen) return;
+  go(dir);
+}
+
+function slideTimerTap() {
+  toggleTimer();
+}
+
+function renderSlide() {
+  if (!slideshowOpen) return;
+  const b = blocks[current];
+  const total = blocks.length;
+  const data = slides[current] || { headline: b.title };
+  const slideshow = document.getElementById('slideshow');
+
+  // Accent (drives color theme)
+  const accent = data.accent || 'default';
+  slideshow.setAttribute('data-accent', accent);
+
+  // Top strip
+  const modeTagClass = b.modeClass || (b.mode === 'Individual' ? 'amber' : '');
+  const modeEl = document.getElementById('slideMode');
+  modeEl.className = 'slideshow-mode-tag ' + modeTagClass;
+  modeEl.textContent = b.mode;
+  document.getElementById('slideTime').textContent =
+    b.time + (b.durationMin ? ' · ' + b.durationMin + ' min' : '');
+  document.getElementById('slideCounter').textContent =
+    'Block ' + (current + 1) + ' of ' + total;
+
+  // Slide body
+  let html = '';
+  if (data.eyebrow) {
+    html += '<div class="slideshow-eyebrow">' + data.eyebrow + '</div>';
+  }
+  html += '<div class="slideshow-headline">' + (data.headline || b.title) + '</div>';
+  if (data.body) {
+    html += '<div class="slideshow-body">' + data.body + '</div>';
+  }
+  if (data.bullets && data.bullets.length) {
+    html += '<div class="slideshow-bullets">';
+    for (let i = 0; i < data.bullets.length; i++) {
+      const txt = data.bullets[i];
+      if (data.numbered) {
+        html += '<div class="slideshow-bullet"><span class="slideshow-bullet-num">' + (i + 1) + '</span><span>' + txt + '</span></div>';
+      } else {
+        html += '<div class="slideshow-bullet"><span class="slideshow-bullet-dot"></span><span>' + txt + '</span></div>';
+      }
+    }
+    html += '</div>';
+  }
+  if (data.note) {
+    html += '<div class="slideshow-note">' + data.note + '</div>';
+  }
+
+  const slideEl = document.getElementById('slideContent');
+  slideEl.innerHTML = html;
+  // Re-trigger entrance animation
+  slideEl.style.animation = 'none';
+  // eslint-disable-next-line no-unused-expressions
+  slideEl.offsetHeight;
+  slideEl.style.animation = '';
+
+  // Progress dots
+  let dots = '';
+  for (let i = 0; i < total; i++) {
+    const cls = i === current ? 'current' : (i < current ? 'done' : '');
+    dots += '<div class="slideshow-dot ' + cls + '"></div>';
+  }
+  document.getElementById('slideProgress').innerHTML = dots;
+
+  // Nav buttons
+  document.getElementById('slidePrev').disabled = current === 0;
+  document.getElementById('slideNext').disabled = current === total - 1;
+
+  updateSlideTimer();
+}
+
+function updateSlideTimer() {
+  const text = document.getElementById('slideTimerText');
+  if (!text) return;
+  const btn = document.getElementById('slideTimer');
+  const hint = document.getElementById('slideTimerHint');
+  text.textContent = formatTime(timerSeconds);
+  btn.classList.toggle('running', timerRunning);
+  btn.classList.toggle('urgent', timerSeconds <= 30 && timerRunning);
+  if (hint) {
+    if (timerSeconds <= 0 && !timerRunning) hint.textContent = 'Tap to reset';
+    else if (timerRunning) hint.textContent = 'Tap to pause';
+    else if (timerSeconds === timerOriginal) hint.textContent = 'Tap to start';
+    else hint.textContent = 'Tap to resume';
+  }
+}
+
+// Keyboard navigation — active only while slideshow is open
+document.addEventListener('keydown', e => {
+  if (!slideshowOpen) return;
+  // Ignore typing into inputs (e.g. custom timer)
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+  if (e.key === 'Escape') { closeSlideshow(); e.preventDefault(); }
+  else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { slideGo(1); e.preventDefault(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { slideGo(-1); e.preventDefault(); }
+  else if (e.key === 'Home') { jumpTo(0); e.preventDefault(); }
+  else if (e.key === 'End') { jumpTo(blocks.length - 1); e.preventDefault(); }
+  else if (e.key === 'f' || e.key === 'F') { toggleSlideFullscreen(); e.preventDefault(); }
+  else if (e.key === 't' || e.key === 'T') { toggleTimer(); e.preventDefault(); }
+});
 
 // Init — auto-set timer to first block's duration
 timerSeconds = blocks[0].durationMin * 60;
