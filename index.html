@@ -1508,6 +1508,119 @@ button { font-family: inherit; touch-action: manipulation; }
   font-weight: 500;
 }
 
+/* AGENDA — two-track schedule (for the opening slide) */
+.slideshow-agenda {
+  max-width: 980px;
+  width: 100%;
+  margin: 1.1rem auto 0;
+  text-align: left;
+}
+.slideshow-agenda-header,
+.slideshow-agenda-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.slideshow-agenda-header {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.16);
+  font-size: clamp(0.58rem, 0.85vw, 0.72rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 0.4rem;
+}
+.slideshow-agenda-header .track-newcomer {
+  color: #ffc370;
+}
+.slideshow-agenda-row {
+  padding: 0.45rem 0;
+  border-bottom: 0.5px solid rgba(255,255,255,0.07);
+  font-size: clamp(0.78rem, 1.15vw, 1rem);
+  line-height: 1.35;
+}
+.slideshow-agenda-row:last-child { border-bottom: none; }
+.slideshow-agenda-time {
+  font-weight: 700;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.005em;
+}
+.slideshow-agenda-cell {
+  color: rgba(255,255,255,0.88);
+  font-weight: 400;
+}
+.slideshow-agenda-cell.faded {
+  color: rgba(255,255,255,0.3);
+  font-style: italic;
+}
+.slideshow-agenda-cell .agenda-title {
+  display: block;
+  font-weight: 600;
+  color: rgba(255,255,255,0.98);
+}
+.slideshow-agenda-cell .agenda-who {
+  display: block;
+  font-size: 0.85em;
+  color: rgba(255,255,255,0.5);
+  margin-top: 0.15rem;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+}
+.slideshow-agenda-row.merge {
+  grid-template-columns: 80px 1fr;
+}
+.slideshow-agenda-row.merge .slideshow-agenda-cell {
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,0.05);
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--r-sm);
+  border-left: 2px solid rgba(0,148,160,0.55);
+}
+
+/* On narrow screens, collapse to stacked rows */
+@media (max-width: 700px) {
+  .slideshow-agenda-header { display: none; }
+  .slideshow-agenda-row {
+    grid-template-columns: 60px 1fr;
+    gap: 0.6rem;
+    padding: 0.55rem 0;
+  }
+  .slideshow-agenda-cell.right-cell {
+    grid-column: 2;
+    padding-top: 0.35rem;
+    position: relative;
+    padding-left: 0.55rem;
+    border-left: 2px solid rgba(201,122,0,0.4);
+  }
+  .slideshow-agenda-cell.right-cell::before {
+    content: 'NEWCOMERS · ';
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #ffc370;
+    display: block;
+    margin-bottom: 0.1rem;
+  }
+  .slideshow-agenda-cell.left-cell::before {
+    content: 'POD SPRINT · ';
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #5dd9e2;
+    display: block;
+    margin-bottom: 0.1rem;
+  }
+  .slideshow-agenda-cell.faded { display: none; }
+  .slideshow-agenda-row.merge {
+    grid-template-columns: 60px 1fr;
+  }
+}
+
 /* BOTTOM BAR */
 .slideshow-bottom {
   flex-shrink: 0;
@@ -2106,10 +2219,37 @@ const blocks = [
 const slides = [
   {
     accent: "muted",
-    eyebrow: "Morning",
+    eyebrow: "Today",
     headline: "Good morning, Upskillers.",
-    body: "Coffee, breakfast, and introductions. Find your Pod — and the new faces in the room.",
-    note: "Tracks separate at <strong>9:30</strong>.",
+    agenda: {
+      rows: [
+        { time: "9:00", merge: "Breakfast — Ballroom" },
+        { time: "9:30",
+          left: "Frame & orient problem statements",
+          right: "About The Upskilling Labs + what to expect" },
+        { time: "10:00",
+          left: "Lightning Talks · How Might We statements",
+          right: { title: "Workshop — Design Thinking",
+                   who: "Emily Modde, Sr. Product Manager · Build a product with the actual user in mind." } },
+        { time: "10:50",
+          left: null,
+          right: { title: "Workshop — The Economics of Building with AI",
+                   who: "Tommy Shen, Founder of anthologist.ai" } },
+        { time: "11:30", merge: "Lunch — Ballroom" },
+        { time: "12:30", merge: "Newcomers bring fresh eyes to Pods — Ballroom" },
+        { time: "1:00",
+          left: "Plan experiment · Build prototype",
+          right: { title: "Workshop — From Prompt to Prototype",
+                   who: "AJ Bubb, MXP Studio · From rough idea to working prototype with AI tools — no coding background required." } },
+        { time: "2:30",
+          left: null,
+          right: { title: "Workshop — Prompt Engineering",
+                   who: "Ashwin Jaiprakash, VP of AI Product & Engineering, GTM Fabric · Practical techniques for talking to AI tools so they do what you mean." } },
+        { time: "3:30", merge: "Pod prototype presentations — Ballroom" },
+        { time: "4:30", merge: "Depart for Happy Hour · La Plaza, 629 Pennsylvania Ave SE" },
+      ],
+    },
+    note: "Two tracks today. <strong>Pod Sprint</strong> Upskillers stay in the Ballroom. <strong>Newcomers</strong> head downstairs after breakfast. We come back together at lunch and again at 12:30.",
   },
   {
     accent: "default",
@@ -2784,6 +2924,48 @@ function slideTimerTap() {
   toggleTimer();
 }
 
+function renderAgendaCell(cell, side) {
+  const cls = 'slideshow-agenda-cell' + (side ? ' ' + side + '-cell' : '');
+  if (cell === null) {
+    return '<span class="' + cls + ' faded">(continues)</span>';
+  }
+  if (cell === undefined || cell === '') {
+    return '<span class="' + cls + '"></span>';
+  }
+  if (typeof cell === 'string') {
+    return '<span class="' + cls + '">' + cell + '</span>';
+  }
+  // Object: { title, who? }
+  let inner = '<span class="agenda-title">' + cell.title + '</span>';
+  if (cell.who) inner += '<span class="agenda-who">' + cell.who + '</span>';
+  return '<span class="' + cls + '">' + inner + '</span>';
+}
+
+function renderAgenda(agenda) {
+  let h = '<div class="slideshow-agenda">';
+  h += '<div class="slideshow-agenda-header">';
+  h += '<span>Time</span>';
+  h += '<span class="track-pod">Pod Sprint Track</span>';
+  h += '<span class="track-newcomer">Newcomer Track · downstairs</span>';
+  h += '</div>';
+  for (const r of agenda.rows) {
+    if (r.merge) {
+      h += '<div class="slideshow-agenda-row merge">';
+      h += '<span class="slideshow-agenda-time">' + r.time + '</span>';
+      h += '<span class="slideshow-agenda-cell">' + r.merge + '</span>';
+      h += '</div>';
+    } else {
+      h += '<div class="slideshow-agenda-row">';
+      h += '<span class="slideshow-agenda-time">' + r.time + '</span>';
+      h += renderAgendaCell(r.left, 'left');
+      h += renderAgendaCell(r.right, 'right');
+      h += '</div>';
+    }
+  }
+  h += '</div>';
+  return h;
+}
+
 function renderSlide() {
   if (!slideshowOpen) return;
   const b = blocks[current];
@@ -2825,6 +3007,9 @@ function renderSlide() {
       }
     }
     html += '</div>';
+  }
+  if (data.agenda) {
+    html += renderAgenda(data.agenda);
   }
   if (data.note) {
     html += '<div class="slideshow-note">' + data.note + '</div>';
